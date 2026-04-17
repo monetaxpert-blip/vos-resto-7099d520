@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 const tabs = [
   { path: '/', icon: Home, label: 'Accueil' },
   { path: '/search', icon: Search, label: 'Recherche' },
-  { path: '/favorites', icon: Heart, label: 'Favoris' },
+  { path: '/favorites', icon: Heart, label: 'Réservations' },
   { path: '/profile', icon: User, label: 'Profil' },
 ];
 

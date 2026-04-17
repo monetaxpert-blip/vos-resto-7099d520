@@ -1,10 +1,11 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
+import { MapPin, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Restaurant } from '@/data/types';
 import RatingBadge from './RatingBadge';
 import TiltCard from '@/components/animations/TiltCard';
+import { deriveAveragePrice, formatFCFA } from '@/lib/format';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -29,6 +30,10 @@ function getImage(id: string) {
 
 const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: RestaurantCardProps) => {
   const navigate = useNavigate();
+  const avgPrice = useMemo(
+    () => deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id),
+    [restaurant.priceLevel, restaurant.categories, restaurant.id]
+  );
 
   if (variant === 'featured') {
     return (
@@ -49,11 +54,10 @@ const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: Res
             <div className="absolute top-3 left-3">
               <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} />
             </div>
-            {restaurant.priceLevel && (
-              <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-medium text-foreground">
-                {restaurant.priceLevel}
-              </div>
-            )}
+            <div className="absolute top-3 right-3 inline-flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-foreground">
+              <Wallet size={10} />
+              {formatFCFA(avgPrice)}
+            </div>
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <h3 className="text-white font-bold text-lg leading-tight mb-1">{restaurant.name}</h3>
               <div className="flex items-center gap-1 text-white/80 text-xs">
@@ -112,11 +116,10 @@ const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: Res
         <div className="absolute top-3 left-3">
           <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} />
         </div>
-        {restaurant.priceLevel && (
-          <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-medium">
-            {restaurant.priceLevel}
-          </div>
-        )}
+        <div className="absolute top-3 right-3 inline-flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-[11px] font-semibold">
+          <Wallet size={10} />
+          {formatFCFA(avgPrice)}
+        </div>
       </div>
       <div className="p-4">
         <h3 className="font-bold text-base truncate">{restaurant.name}</h3>

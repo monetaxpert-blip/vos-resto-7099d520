@@ -1,10 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Star } from 'lucide-react';
+import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet } from 'lucide-react';
 import { getRestaurantById, getSimilarRestaurants } from '@/data/queries';
+import { getMenuForRestaurant } from '@/data/menus';
+import { deriveAveragePrice, formatFCFA } from '@/lib/format';
 import RatingBadge from '@/components/restaurant/RatingBadge';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import StaggerList from '@/components/animations/StaggerList';
+import RouteButton from '@/components/restaurant/RouteButton';
+import ReservationSheet from '@/components/restaurant/ReservationSheet';
+import MenuSection from '@/components/restaurant/MenuSection';
 
 const PLACEHOLDER_IMAGES = [
   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=500&fit=crop',
@@ -23,6 +29,15 @@ const RestaurantDetail = () => {
   const navigate = useNavigate();
   const restaurant = id ? getRestaurantById(id) : undefined;
 
+  const menu = useMemo(
+    () => (restaurant ? getMenuForRestaurant(restaurant.id, restaurant.categories) : []),
+    [restaurant]
+  );
+  const avgPrice = useMemo(
+    () => (restaurant ? deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id) : 0),
+    [restaurant]
+  );
+
   if (!restaurant) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -39,7 +54,7 @@ const RestaurantDetail = () => {
   const similar = getSimilarRestaurants(restaurant, 4);
 
   return (
-    <div className="min-h-screen pb-24 bg-background">
+    <div className="min-h-screen pb-32 bg-background">
       {/* Hero */}
       <div className="relative h-72 overflow-hidden">
         <img src={getImage(restaurant.id)} alt={restaurant.name} className="w-full h-full object-cover" />
@@ -66,25 +81,28 @@ const RestaurantDetail = () => {
         </div>
       </div>
 
-      {/* Info */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="px-5 pt-5"
       >
-        {/* Categories */}
+        {/* Categories + budget */}
         <div className="flex flex-wrap gap-2 mb-4">
           {restaurant.categories.map(cat => (
             <span key={cat} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
               {cat}
             </span>
           ))}
-          {restaurant.priceLevel && (
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              {restaurant.priceLevel}
-            </span>
-          )}
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <Wallet size={11} /> Budget moyen : {formatFCFA(avgPrice)}
+          </span>
+        </div>
+
+        {/* Primary actions */}
+        <div className="space-y-3 mb-5">
+          <RouteButton restaurant={restaurant} />
+          <ReservationSheet restaurant={restaurant} />
         </div>
 
         {/* Details card */}
@@ -149,16 +167,8 @@ const RestaurantDetail = () => {
           </div>
         )}
 
-        {/* Map placeholder */}
-        {restaurant.lat && restaurant.lng && (
-          <div className="mt-6 rounded-2xl overflow-hidden bg-secondary h-40 flex items-center justify-center">
-            <div className="text-center">
-              <MapPin size={24} className="text-muted-foreground mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">Carte interactive (Phase 2)</p>
-              <p className="text-[10px] text-muted-foreground">{restaurant.lat.toFixed(4)}, {restaurant.lng.toFixed(4)}</p>
-            </div>
-          </div>
-        )}
+        {/* Menu */}
+        <MenuSection menu={menu} />
 
         {/* Similar */}
         {similar.length > 0 && (
