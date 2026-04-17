@@ -1,10 +1,11 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
+import { MapPin, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Restaurant } from '@/data/types';
 import RatingBadge from './RatingBadge';
 import TiltCard from '@/components/animations/TiltCard';
+import { deriveAveragePrice, formatFCFA } from '@/lib/format';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -29,6 +30,10 @@ function getImage(id: string) {
 
 const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: RestaurantCardProps) => {
   const navigate = useNavigate();
+  const avgPrice = useMemo(
+    () => deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id),
+    [restaurant.priceLevel, restaurant.categories, restaurant.id]
+  );
 
   if (variant === 'featured') {
     return (
