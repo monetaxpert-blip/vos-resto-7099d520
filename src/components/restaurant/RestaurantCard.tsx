@@ -1,11 +1,13 @@
 import { memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Wallet } from 'lucide-react';
+import { MapPin, Wallet, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Restaurant } from '@/data/types';
 import RatingBadge from './RatingBadge';
 import TiltCard from '@/components/animations/TiltCard';
 import { deriveAveragePrice, formatFCFA } from '@/lib/format';
+import { getRestaurantImage } from '@/lib/photos';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -13,26 +15,37 @@ interface RestaurantCardProps {
   index?: number;
 }
 
-const PLACEHOLDER_IMAGES = [
-  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1544148103-0773bf10d330?w=600&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?w=600&h=400&fit=crop',
-];
-
-function getImage(id: string) {
-  return PLACEHOLDER_IMAGES[parseInt(id) % PLACEHOLDER_IMAGES.length];
-}
-
 const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: RestaurantCardProps) => {
   const navigate = useNavigate();
+  const { isFavorite, toggle } = useFavorites();
+  const fav = isFavorite(restaurant.id);
+
   const avgPrice = useMemo(
     () => deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id),
     [restaurant.priceLevel, restaurant.categories, restaurant.id]
+  );
+  const imageUrl = useMemo(
+    () => getRestaurantImage(restaurant.id, restaurant.categories, { width: 600, height: 400 }),
+    [restaurant.id, restaurant.categories]
+  );
+
+  const handleFavClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggle(restaurant.id);
+  };
+
+  const FavButton = ({ className = '' }: { className?: string }) => (
+    <motion.button
+      whileTap={{ scale: 0.85 }}
+      onClick={handleFavClick}
+      className={`w-8 h-8 rounded-full bg-background/85 backdrop-blur-sm flex items-center justify-center ${className}`}
+      aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+    >
+      <Heart
+        size={14}
+        className={fav ? 'text-primary fill-primary' : 'text-foreground'}
+      />
+    </motion.button>
   );
 
   if (variant === 'featured') {
@@ -45,7 +58,7 @@ const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: Res
         >
           <div className="aspect-[4/5] relative">
             <img
-              src={getImage(restaurant.id)}
+              src={imageUrl}
               alt={restaurant.name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
@@ -54,9 +67,12 @@ const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: Res
             <div className="absolute top-3 left-3">
               <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} />
             </div>
-            <div className="absolute top-3 right-3 inline-flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-foreground">
-              <Wallet size={10} />
-              {formatFCFA(avgPrice)}
+            <div className="absolute top-3 right-3 flex items-center gap-2">
+              <div className="inline-flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-foreground">
+                <Wallet size={10} />
+                {formatFCFA(avgPrice)}
+              </div>
+              <FavButton />
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <h3 className="text-white font-bold text-lg leading-tight mb-1">{restaurant.name}</h3>
@@ -82,7 +98,7 @@ const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: Res
         className="flex items-center gap-3 p-3 rounded-2xl bg-card hover:bg-secondary/50 cursor-pointer transition-colors"
       >
         <img
-          src={getImage(restaurant.id)}
+          src={imageUrl}
           alt={restaurant.name}
           className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
           loading="lazy"
@@ -108,7 +124,7 @@ const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: Res
     >
       <div className="aspect-video relative overflow-hidden">
         <img
-          src={getImage(restaurant.id)}
+          src={imageUrl}
           alt={restaurant.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
@@ -116,9 +132,12 @@ const RestaurantCard = memo(({ restaurant, variant = 'default', index = 0 }: Res
         <div className="absolute top-3 left-3">
           <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} />
         </div>
-        <div className="absolute top-3 right-3 inline-flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-[11px] font-semibold">
-          <Wallet size={10} />
-          {formatFCFA(avgPrice)}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          <div className="inline-flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-[11px] font-semibold">
+            <Wallet size={10} />
+            {formatFCFA(avgPrice)}
+          </div>
+          <FavButton />
         </div>
       </div>
       <div className="p-4">
