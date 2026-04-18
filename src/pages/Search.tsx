@@ -88,9 +88,18 @@ const SearchPage = () => {
           </div>
           <motion.button
             whileTap={{ scale: 0.9 }}
+            onClick={() => navigate('/map')}
+            className="w-11 h-11 rounded-xl flex items-center justify-center bg-secondary text-foreground"
+            aria-label="Voir la carte"
+          >
+            <MapIcon size={18} />
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
             onClick={() => setShowFilters(!showFilters)}
             className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors
               ${showFilters ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}
+            aria-label="Filtres"
           >
             <SlidersHorizontal size={18} />
           </motion.button>
