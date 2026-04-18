@@ -13,6 +13,7 @@ import BudgetFilter from '@/components/search/BudgetFilter';
 const BUDGET_BOUNDS: [number, number] = [1000, 30000];
 
 const SearchPage = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [selectedQuartier, setSelectedQuartier] = useState<string | null>(searchParams.get('quartier'));
