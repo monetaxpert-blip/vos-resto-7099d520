@@ -1,8 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search as SearchIcon, X, SlidersHorizontal, Map as MapIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { restaurants } from '@/data/restaurants';
 import { searchRestaurants } from '@/data/queries';
 import { QUARTIERS, TOP_CATEGORIES } from '@/data/types';
