@@ -1,33 +1,28 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon } from 'lucide-react';
 import { getRestaurantById, getSimilarRestaurants } from '@/data/queries';
 import { getMenuForRestaurant } from '@/data/menus';
 import { deriveAveragePrice, formatFCFA } from '@/lib/format';
+import { getRestaurantGallery, getRestaurantImage } from '@/lib/photos';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useRestaurantPhotos } from '@/hooks/useRestaurantPhotos';
 import RatingBadge from '@/components/restaurant/RatingBadge';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import StaggerList from '@/components/animations/StaggerList';
 import RouteButton from '@/components/restaurant/RouteButton';
 import ReservationSheet from '@/components/restaurant/ReservationSheet';
 import MenuSection from '@/components/restaurant/MenuSection';
-
-const PLACEHOLDER_IMAGES = [
-  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=500&fit=crop',
-  'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=500&fit=crop',
-  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=500&fit=crop',
-  'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=500&fit=crop',
-  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=500&fit=crop',
-];
-
-function getImage(id: string) {
-  return PLACEHOLDER_IMAGES[parseInt(id) % PLACEHOLDER_IMAGES.length];
-}
+import RestaurantMap from '@/components/map/RestaurantMap';
 
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const restaurant = id ? getRestaurantById(id) : undefined;
+  const { isFavorite, toggle } = useFavorites();
+  const { data: dbPhotos } = useRestaurantPhotos(restaurant?.id);
+  const [activeImg, setActiveImg] = useState(0);
 
   const menu = useMemo(
     () => (restaurant ? getMenuForRestaurant(restaurant.id, restaurant.categories) : []),
@@ -37,6 +32,18 @@ const RestaurantDetail = () => {
     () => (restaurant ? deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id) : 0),
     [restaurant]
   );
+  const gallery = useMemo(() => {
+    if (!restaurant) return [];
+    if (dbPhotos && dbPhotos.length > 0) {
+      // Hero first if marked, then others, padded with curated fallback
+      const sorted = [...dbPhotos].sort((a, b) => Number(b.is_hero) - Number(a.is_hero));
+      const urls = sorted.map((p) => p.url);
+      if (urls.length >= 4) return urls.slice(0, 4);
+      const fallback = getRestaurantGallery(restaurant.id, restaurant.categories, 4);
+      return [...urls, ...fallback].slice(0, 4);
+    }
+    return getRestaurantGallery(restaurant.id, restaurant.categories, 4);
+  }, [restaurant, dbPhotos]);
 
   if (!restaurant) {
     return (
@@ -52,22 +59,64 @@ const RestaurantDetail = () => {
   }
 
   const similar = getSimilarRestaurants(restaurant, 4);
+  const fav = isFavorite(restaurant.id);
 
   return (
     <div className="min-h-screen pb-32 bg-background">
-      {/* Hero */}
-      <div className="relative h-72 overflow-hidden">
-        <img src={getImage(restaurant.id)} alt={restaurant.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      {/* Hero gallery */}
+      <div className="relative h-72 overflow-hidden bg-secondary">
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={gallery[activeImg]}
+            src={gallery[activeImg] ?? getRestaurantImage(restaurant.id, restaurant.categories)}
+            alt={restaurant.name}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </AnimatePresence>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
+
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => navigate(-1)}
           className="absolute top-12 left-4 z-10 w-10 h-10 rounded-full glass flex items-center justify-center"
+          aria-label="Retour"
         >
           <ArrowLeft size={20} className="text-white" />
         </motion.button>
+
+        <motion.button
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileTap={{ scale: 0.85 }}
+          onClick={() => toggle(restaurant.id)}
+          className="absolute top-12 right-4 z-10 w-10 h-10 rounded-full glass flex items-center justify-center"
+          aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+        >
+          <Heart size={20} className={fav ? 'text-primary fill-primary' : 'text-white'} />
+        </motion.button>
+
+        {/* Gallery thumbs */}
+        {gallery.length > 1 && (
+          <div className="absolute bottom-16 left-0 right-0 px-5 flex gap-1.5 justify-center">
+            {gallery.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveImg(i)}
+                aria-label={`Photo ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === activeImg ? 'bg-white w-8' : 'bg-white/50 w-1.5'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
         <div className="absolute bottom-0 left-0 right-0 p-5">
           <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} size="md" />
           <motion.h1
@@ -89,7 +138,7 @@ const RestaurantDetail = () => {
       >
         {/* Categories + budget */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {restaurant.categories.map(cat => (
+          {restaurant.categories.map((cat) => (
             <span key={cat} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
               {cat}
             </span>
@@ -105,6 +154,24 @@ const RestaurantDetail = () => {
           <ReservationSheet restaurant={restaurant} />
         </div>
 
+        {/* Map */}
+        {restaurant.lat && restaurant.lng && (
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                <MapIcon size={14} /> Localisation
+              </h2>
+              <button
+                onClick={() => navigate('/map')}
+                className="text-xs text-primary font-semibold"
+              >
+                Vue globale →
+              </button>
+            </div>
+            <RestaurantMap restaurant={restaurant} height={200} />
+          </div>
+        )}
+
         {/* Details card */}
         <div className="rounded-2xl bg-card shadow-card p-5 space-y-4">
           {restaurant.address && (
@@ -113,7 +180,11 @@ const RestaurantDetail = () => {
               <div>
                 <p className="text-sm font-medium">Adresse</p>
                 <p className="text-xs text-muted-foreground">{restaurant.address}</p>
-                {restaurant.quartier && <p className="text-xs text-muted-foreground mt-0.5">{restaurant.quartier}, {restaurant.city}</p>}
+                {restaurant.quartier && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {restaurant.quartier}, {restaurant.city}
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -153,14 +224,22 @@ const RestaurantDetail = () => {
         {restaurant.socialMedia && (
           <div className="mt-4 flex gap-3">
             {restaurant.socialMedia.facebook && (
-              <a href={restaurant.socialMedia.facebook} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-full bg-secondary px-4 py-2 text-xs font-medium hover:bg-primary hover:text-primary-foreground transition-colors">
+              <a
+                href={restaurant.socialMedia.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-full bg-secondary px-4 py-2 text-xs font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
+              >
                 <ExternalLink size={12} /> Facebook
               </a>
             )}
             {restaurant.socialMedia.instagram && (
-              <a href={restaurant.socialMedia.instagram} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-full bg-secondary px-4 py-2 text-xs font-medium hover:bg-primary hover:text-primary-foreground transition-colors">
+              <a
+                href={restaurant.socialMedia.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-full bg-secondary px-4 py-2 text-xs font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
+              >
                 <ExternalLink size={12} /> Instagram
               </a>
             )}
@@ -175,7 +254,7 @@ const RestaurantDetail = () => {
           <div className="mt-8">
             <h2 className="text-lg font-bold mb-4">Restaurants similaires</h2>
             <StaggerList className="space-y-2">
-              {similar.map(r => (
+              {similar.map((r) => (
                 <RestaurantCard key={r.id} restaurant={r} variant="compact" />
               ))}
             </StaggerList>

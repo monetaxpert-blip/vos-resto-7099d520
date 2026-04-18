@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search as SearchIcon, X, SlidersHorizontal } from 'lucide-react';
+import { Search as SearchIcon, X, SlidersHorizontal, Map as MapIcon } from 'lucide-react';
 import { restaurants } from '@/data/restaurants';
 import { searchRestaurants } from '@/data/queries';
 import { QUARTIERS, TOP_CATEGORIES } from '@/data/types';
@@ -13,6 +13,7 @@ import BudgetFilter from '@/components/search/BudgetFilter';
 const BUDGET_BOUNDS: [number, number] = [1000, 30000];
 
 const SearchPage = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [selectedQuartier, setSelectedQuartier] = useState<string | null>(searchParams.get('quartier'));
@@ -87,9 +88,18 @@ const SearchPage = () => {
           </div>
           <motion.button
             whileTap={{ scale: 0.9 }}
+            onClick={() => navigate('/map')}
+            className="w-11 h-11 rounded-xl flex items-center justify-center bg-secondary text-foreground"
+            aria-label="Voir la carte"
+          >
+            <MapIcon size={18} />
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
             onClick={() => setShowFilters(!showFilters)}
             className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors
               ${showFilters ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}
+            aria-label="Filtres"
           >
             <SlidersHorizontal size={18} />
           </motion.button>

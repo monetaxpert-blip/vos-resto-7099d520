@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar as CalendarIcon, Clock, Users, Check, X, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Users, Check, Loader2, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Restaurant } from '@/data/types';
-import { createReservation } from '@/lib/reservations';
+import { useAuth } from '@/contexts/AuthContext';
+import { useReservations } from '@/hooks/useReservations';
 import { toast } from 'sonner';
 
 interface ReservationSheetProps {
@@ -15,44 +17,50 @@ interface ReservationSheetProps {
 const TIMES = ['12:00', '12:30', '13:00', '13:30', '14:00', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30'];
 
 const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { create } = useReservations();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date>(addDays(new Date(), 1));
   const [time, setTime] = useState('20:00');
   const [guests, setGuests] = useState(2);
-  const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const days = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i));
 
   const reset = () => {
     setSuccess(false);
-    setSubmitting(false);
     setDate(addDays(new Date(), 1));
     setTime('20:00');
     setGuests(2);
   };
 
   const submit = async () => {
-    setSubmitting(true);
-    try {
-      // Simulate small async confirmation for native feel
-      await new Promise((r) => setTimeout(r, 600));
-      createReservation({
+    if (!user) {
+      toast.error('Connectez-vous pour réserver');
+      setOpen(false);
+      navigate('/auth');
+      return;
+    }
+    create.mutate(
+      {
         restaurantId: restaurant.id,
         restaurantName: restaurant.name,
         date: format(date, 'yyyy-MM-dd'),
         time,
         guests,
-      });
-      setSuccess(true);
-      setTimeout(() => {
-        setOpen(false);
-        setTimeout(reset, 300);
-      }, 1400);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Erreur');
-      setSubmitting(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          setSuccess(true);
+          setTimeout(() => {
+            setOpen(false);
+            setTimeout(reset, 300);
+          }, 1400);
+        },
+        onError: (e) => toast.error(e instanceof Error ? e.message : 'Erreur'),
+      }
+    );
   };
 
   return (
@@ -68,7 +76,9 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
             </div>
             <div className="text-left">
               <p className="font-semibold text-sm">Réserver une table</p>
-              <p className="text-xs text-muted-foreground">Confirmation immédiate</p>
+              <p className="text-xs text-muted-foreground">
+                {user ? 'Confirmation immédiate' : 'Connexion requise'}
+              </p>
             </div>
           </div>
           <span className="text-primary text-xs font-semibold">Réserver →</span>
@@ -82,7 +92,30 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
         </DrawerHeader>
 
         <AnimatePresence mode="wait">
-          {success ? (
+          {!user ? (
+            <motion.div
+              key="auth"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="px-5 pb-10 pt-4 flex flex-col items-center text-center"
+            >
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <LogIn size={26} className="text-primary" />
+              </div>
+              <p className="font-semibold">Connexion requise</p>
+              <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                Créez un compte gratuit pour réserver et retrouver vos réservations sur tous vos appareils.
+              </p>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => { setOpen(false); navigate('/auth'); }}
+                className="mt-5 w-full max-w-xs h-12 rounded-2xl bg-primary text-primary-foreground font-bold"
+              >
+                Se connecter / S'inscrire
+              </motion.button>
+            </motion.div>
+          ) : success ? (
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -198,10 +231,10 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={submit}
-                disabled={submitting}
+                disabled={create.isPending}
                 className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-bold shadow-lg flex items-center justify-center gap-2 disabled:opacity-70"
               >
-                {submitting ? (
+                {create.isPending ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
                     Confirmation...
