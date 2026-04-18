@@ -10,9 +10,13 @@ const tabs = [
   { path: '/profile', icon: User, label: 'Profil' },
 ];
 
+const HIDDEN_ROUTES = ['/auth', '/map'];
+
 const BottomNav = memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  if (HIDDEN_ROUTES.includes(location.pathname)) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 pb-safe">
