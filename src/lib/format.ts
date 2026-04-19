@@ -55,6 +55,31 @@ export function deriveAveragePrice(
 }
 
 /**
+ * Parse a free-text budget hint from a search query.
+ * Examples that should resolve to ~10000 FCFA:
+ *  "10000", "10 000", "10000 fcfa", "10k", "budget 10000",
+ *  "moins de 10000", "max 10000", "<10000".
+ * Returns null when no number can be safely extracted.
+ */
+export function parseBudgetFromQuery(raw: string): number | null {
+  if (!raw) return null;
+  const s = raw.toLowerCase().replace(/\u00a0/g, ' ');
+  // "10k" / "10 k"
+  const k = s.match(/(\d+(?:[.,]\d+)?)\s*k\b/);
+  if (k) {
+    const n = parseFloat(k[1].replace(',', '.')) * 1000;
+    if (n >= 500 && n <= 200000) return Math.round(n);
+  }
+  // First contiguous number, allowing spaces as thousand separators (e.g. "10 000")
+  const m = s.match(/(\d[\d\s.,]{2,})/);
+  if (!m) return null;
+  const cleaned = m[1].replace(/[\s.,]/g, '');
+  const n = parseInt(cleaned, 10);
+  if (!isNaN(n) && n >= 500 && n <= 200000) return n;
+  return null;
+}
+
+/**
  * Haversine distance in km between two coordinates.
  */
 export function distanceKm(

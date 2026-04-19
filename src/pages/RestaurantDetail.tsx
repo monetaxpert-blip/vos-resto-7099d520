@@ -35,14 +35,25 @@ const RestaurantDetail = () => {
   const gallery = useMemo(() => {
     if (!restaurant) return [];
     if (dbPhotos && dbPhotos.length > 0) {
-      // Hero first if marked, then others, padded with curated fallback
       const sorted = [...dbPhotos].sort((a, b) => Number(b.is_hero) - Number(a.is_hero));
       const urls = sorted.map((p) => p.url);
       if (urls.length >= 4) return urls.slice(0, 4);
-      const fallback = getRestaurantGallery(restaurant.id, restaurant.categories, 4);
+      const fallback = getRestaurantGallery(
+        restaurant.id,
+        restaurant.categories,
+        4,
+        restaurant.name,
+        restaurant.quartier
+      );
       return [...urls, ...fallback].slice(0, 4);
     }
-    return getRestaurantGallery(restaurant.id, restaurant.categories, 4);
+    return getRestaurantGallery(
+      restaurant.id,
+      restaurant.categories,
+      4,
+      restaurant.name,
+      restaurant.quartier
+    );
   }, [restaurant, dbPhotos]);
 
   if (!restaurant) {
@@ -68,7 +79,7 @@ const RestaurantDetail = () => {
         <AnimatePresence mode="wait">
           <motion.img
             key={gallery[activeImg]}
-            src={gallery[activeImg] ?? getRestaurantImage(restaurant.id, restaurant.categories)}
+            src={gallery[activeImg] ?? getRestaurantImage(restaurant.id, restaurant.categories, undefined, restaurant.name, restaurant.quartier)}
             alt={restaurant.name}
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}

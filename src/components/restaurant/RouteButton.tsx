@@ -18,48 +18,85 @@ type GeoState =
 const RouteButton = ({ restaurant }: RouteButtonProps) => {
   const [geo, setGeo] = useState<GeoState>({ status: 'idle' });
 
+  // Try to get the user's position passively for the distance/ETA hint.
+  // Failures here NEVER block the "Open Maps" button.
   useEffect(() => {
     if (!restaurant.lat || !restaurant.lng) return;
-    if (!('geolocation' in navigator)) return;
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+      setGeo({ status: 'denied' });
+      return;
+    }
     setGeo({ status: 'loading' });
+    let cancelled = false;
     navigator.geolocation.getCurrentPosition(
-      (pos) =>
+      (pos) => {
+        if (cancelled) return;
         setGeo({
           status: 'ready',
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
-        }),
-      () => setGeo({ status: 'denied' }),
+        });
+      },
+      () => {
+        if (cancelled) return;
+        setGeo({ status: 'denied' });
+      },
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
     );
+    return () => {
+      cancelled = true;
+    };
   }, [restaurant.lat, restaurant.lng]);
 
-  if (!restaurant.lat || !restaurant.lng) return null;
+  // No coords at all → render a degraded button that searches by name in Maps.
+  const hasCoords = !!(restaurant.lat && restaurant.lng);
 
   const openMaps = () => {
-    const dest = `${restaurant.lat},${restaurant.lng}`;
     const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
-    const url = isApple
-      ? `https://maps.apple.com/?daddr=${dest}&dirflg=d`
-      : `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-    toast.success('Itinéraire ouvert dans Maps');
+    let url: string;
+
+    if (hasCoords) {
+      const dest = `${restaurant.lat},${restaurant.lng}`;
+      url = isApple
+        ? `https://maps.apple.com/?daddr=${dest}&dirflg=d`
+        : `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
+    } else {
+      // Fallback: search by name + city
+      const q = encodeURIComponent(`${restaurant.name} ${restaurant.city ?? ''}`.trim());
+      url = isApple
+        ? `https://maps.apple.com/?q=${q}`
+        : `https://www.google.com/maps/search/?api=1&query=${q}`;
+    }
+
+    try {
+      const win = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!win) {
+        // Popup blocked → navigate the current tab so user always reaches Maps
+        window.location.href = url;
+      }
+      toast.success('Itinéraire ouvert dans Maps');
+    } catch {
+      window.location.href = url;
+    }
   };
 
   let infoLine: string | null = null;
-  if (geo.status === 'ready') {
-    const km = distanceKm(geo.lat, geo.lng, restaurant.lat, restaurant.lng);
+  if (geo.status === 'ready' && hasCoords) {
+    const km = distanceKm(geo.lat, geo.lng, restaurant.lat!, restaurant.lng!);
     infoLine = `${formatDistance(km)} · ~${estimateDriveMinutes(km)} min`;
   } else if (geo.status === 'loading') {
     infoLine = 'Calcul de la distance...';
-  } else if (geo.status === 'denied') {
-    infoLine = 'Position non disponible';
+  } else if (geo.status === 'denied' && hasCoords) {
+    infoLine = "Active la géoloc pour voir la distance";
+  } else if (!hasCoords) {
+    infoLine = 'Recherche par nom dans Maps';
   }
 
   return (
     <motion.button
       whileTap={{ scale: 0.96 }}
       onClick={openMaps}
+      type="button"
       className="w-full flex items-center justify-between gap-3 rounded-2xl bg-primary text-primary-foreground px-5 py-4 shadow-lg active:shadow-md transition-shadow"
     >
       <div className="flex items-center gap-3">
