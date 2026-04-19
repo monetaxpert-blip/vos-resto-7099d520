@@ -1,4 +1,4 @@
-import { forwardRef, memo, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -14,46 +14,44 @@ interface RestaurantCardProps {
   index?: number;
 }
 
-const RestaurantCard = memo(
-  forwardRef<HTMLDivElement, RestaurantCardProps>(({ restaurant, variant = 'default' }, ref) => {
-    const navigate = useNavigate();
-    const { isFavorite, toggle } = useFavorites();
-    const fav = isFavorite(restaurant.id);
+const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps) => {
+  const navigate = useNavigate();
+  const { isFavorite, toggle } = useFavorites();
+  const fav = isFavorite(restaurant.id);
 
-    const imageUrl = useMemo(
-      () =>
-        getRestaurantImage(
-          restaurant.id,
-          restaurant.categories,
-          { width: 600, height: 400 },
-          restaurant.name,
-          restaurant.quartier
-        ),
-      [restaurant.id, restaurant.categories, restaurant.name, restaurant.quartier]
-    );
+  const imageUrl = useMemo(
+    () =>
+      getRestaurantImage(
+        restaurant.id,
+        restaurant.categories,
+        { width: 600, height: 400 },
+        restaurant.name,
+        restaurant.quartier
+      ),
+    [restaurant.id, restaurant.categories, restaurant.name, restaurant.quartier]
+  );
 
-    const handleFavClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      toggle(restaurant.id);
-    };
+  const handleFavClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggle(restaurant.id);
+  };
 
-    const FavButton = ({ className = '' }: { className?: string }) => (
-      <motion.button
-        whileTap={{ scale: 0.85 }}
-        onClick={handleFavClick}
-        className={`w-8 h-8 rounded-full bg-background/85 backdrop-blur-sm flex items-center justify-center ${className}`}
-        aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-      >
-        <Heart size={14} className={fav ? 'text-primary fill-primary' : 'text-foreground'} />
-      </motion.button>
-    );
+  const favBtn = (className = '') => (
+    <motion.button
+      whileTap={{ scale: 0.85 }}
+      onClick={handleFavClick}
+      className={`w-8 h-8 rounded-full bg-background/85 backdrop-blur-sm flex items-center justify-center ${className}`}
+      aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+    >
+      <Heart size={14} className={fav ? 'text-primary fill-primary' : 'text-foreground'} />
+    </motion.button>
+  );
 
-    if (variant === 'featured') {
-      return (
-        <TiltCard intensity={6}>
-          <motion.div
-            ref={ref}
-            whileTap={{ scale: 0.97 }}
+  if (variant === 'featured') {
+    return (
+      <TiltCard intensity={6}>
+        <motion.div
+          whileTap={{ scale: 0.97 }}
             onClick={() => navigate(`/restaurant/${restaurant.id}`)}
             className="relative w-72 flex-shrink-0 rounded-2xl overflow-hidden cursor-pointer shadow-card group"
           >
