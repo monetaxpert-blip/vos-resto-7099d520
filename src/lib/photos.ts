@@ -1,11 +1,12 @@
 /**
  * Photo resolution per restaurant:
  * 1. If a hero image exists in DB (restaurant_photos), use it (resolved by hook).
- * 2. Otherwise, deterministic Unsplash photo matched to the restaurant's primary cuisine.
+ * 2. Otherwise, deterministic Unsplash photo matched by:
+ *    - explicit name override (curated for known venues),
+ *    - cuisine category,
+ *    - quartier hint (Almadies/Ngor → seaside, etc.).
  */
 
-// Curated, food-relevant Unsplash photos per cuisine family.
-// Each pool has multiple shots so 179 restos rotate without obvious duplicates.
 const POOLS: Record<string, string[]> = {
   senegalais: [
     'photo-1565299507177-b0ac66763828',
@@ -52,6 +53,14 @@ const POOLS: Record<string, string[]> = {
     'photo-1565680018434-b513d5e5fd47',
     'photo-1535140728325-a4d3707eee94',
   ],
+  // NEW: oceanfront / beach restaurants (Almadies, Ngor, Lagon...)
+  oceanfront: [
+    'photo-1414235077428-338989a2e8c0', // beach terrace
+    'photo-1507525428034-b723cf961d3e', // beach
+    'photo-1519046904884-53103b34b206', // sea
+    'photo-1535941339077-2dd1c7963098', // dock restaurant
+    'photo-1502602898657-3e91760cbb34', // sea view
+  ],
   burger: [
     'photo-1568901346375-23c9450c58cd',
     'photo-1571091718767-18b5b1457add',
@@ -93,6 +102,12 @@ const POOLS: Record<string, string[]> = {
     'photo-1546964124-0cce460f38ef',
     'photo-1558030006-450675393462',
   ],
+  // Fishing club / harbor vibe
+  fishingclub: [
+    'photo-1535941339077-2dd1c7963098',
+    'photo-1559737558-2f5a35f4523b',
+    'photo-1502602898657-3e91760cbb34',
+  ],
   default: [
     'photo-1517248135467-4c7edcad34c4',
     'photo-1552566626-52f8b828add9',
@@ -102,7 +117,28 @@ const POOLS: Record<string, string[]> = {
   ],
 };
 
-function pickPool(categories: string[]): string[] {
+/**
+ * Hand-curated overrides for venues whose name implies a specific ambiance.
+ * Matched as a case-insensitive substring on the restaurant name.
+ */
+const NAME_OVERRIDES: Array<{ match: RegExp; pool: keyof typeof POOLS }> = [
+  { match: /pointe des almadies/i, pool: 'oceanfront' },
+  { match: /lagon/i, pool: 'oceanfront' },
+  { match: /\ble sud\b/i, pool: 'seafood' },
+  { match: /club de p[eê]che|fishing/i, pool: 'fishingclub' },
+  { match: /phare/i, pool: 'oceanfront' },
+  { match: /plage|beach/i, pool: 'oceanfront' },
+  { match: /sushi/i, pool: 'japonais' },
+  { match: /pizz/i, pool: 'pizza' },
+  { match: /burger/i, pool: 'burger' },
+];
+
+function pickPool(name: string, categories: string[], quartier?: string | null): string[] {
+  // 1. Name override wins
+  for (const { match, pool } of NAME_OVERRIDES) {
+    if (match.test(name)) return POOLS[pool];
+  }
+
   const text = categories.join(' ').toLowerCase();
   if (/sénégal|senegal|africain|thiéb|yassa/.test(text)) return POOLS.senegalais;
   if (/pizz/.test(text)) return POOLS.pizza;
@@ -121,6 +157,12 @@ function pickPool(categories: string[]): string[] {
   if (/mexic/.test(text)) return POOLS.mexicain;
   if (/indien|india/.test(text)) return POOLS.indien;
   if (/steak/.test(text)) return POOLS.steakhouse;
+
+  // 2. Quartier hint (oceanfront neighborhoods)
+  if (quartier && /almadies|ngor|yoff|virage|mamelle/i.test(quartier)) {
+    return POOLS.oceanfront;
+  }
+
   return POOLS.default;
 }
 
@@ -136,14 +178,17 @@ export interface PhotoOptions {
 }
 
 /**
- * Deterministic, cuisine-matched fallback image for a restaurant.
+ * Deterministic, context-matched fallback image for a restaurant.
+ * Backwards-compatible: if name/quartier are not supplied, falls back to category-only matching.
  */
 export function getRestaurantImage(
   id: string,
   categories: string[],
-  opts: PhotoOptions = {}
+  opts: PhotoOptions = {},
+  name = '',
+  quartier: string | null = null
 ): string {
-  const pool = pickPool(categories);
+  const pool = pickPool(name, categories, quartier);
   const photoId = pool[hash(id) % pool.length];
   const w = opts.width ?? 800;
   const h = opts.height ?? 500;
@@ -153,8 +198,14 @@ export function getRestaurantImage(
 /**
  * Build a small gallery (4 distinct images) for a restaurant detail view.
  */
-export function getRestaurantGallery(id: string, categories: string[], count = 4): string[] {
-  const pool = pickPool(categories);
+export function getRestaurantGallery(
+  id: string,
+  categories: string[],
+  count = 4,
+  name = '',
+  quartier: string | null = null
+): string[] {
+  const pool = pickPool(name, categories, quartier);
   const fallback = POOLS.default;
   const seen = new Set<string>();
   const result: string[] = [];
@@ -168,7 +219,6 @@ export function getRestaurantGallery(id: string, categories: string[], count = 4
     }
     i++;
   }
-  // pad with default pool if we still lack images
   let j = 0;
   while (result.length < count) {
     const src = fallback[(start + j) % fallback.length];
