@@ -13,12 +13,14 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import MapView from "./pages/MapView";
 import NotFound from "./pages/NotFound";
+import SplashScreen from "@/components/pwa/SplashScreen";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <SplashScreen />
       <Toaster />
       <Sonner />
       <BrowserRouter>

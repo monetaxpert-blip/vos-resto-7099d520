@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useReservations } from '@/hooks/useReservations';
 import { toast } from 'sonner';
+import InstallButton from '@/components/pwa/InstallButton';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -60,6 +61,11 @@ const Profile = () => {
           </button>
         </div>
       )}
+
+      {/* PWA install card */}
+      <div className="mb-6">
+        <InstallButton />
+      </div>
 
       <div className="rounded-2xl bg-card shadow-card overflow-hidden">
         <motion.button
