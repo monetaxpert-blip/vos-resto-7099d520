@@ -14,6 +14,11 @@ import Auth from "./pages/Auth";
 import MapView from "./pages/MapView";
 import RestaurantOnboarding from "./pages/RestaurantOnboarding";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminRestaurants from "./pages/admin/AdminRestaurants";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminUsers from "./pages/admin/AdminUsers";
 import NotFound from "./pages/NotFound";
 import SplashScreen from "@/components/pwa/SplashScreen";
 
@@ -37,6 +42,12 @@ const App = () => (
             <Route path="/map" element={<MapView />} />
             <Route path="/restaurant/onboarding" element={<RestaurantOnboarding />} />
             <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="restaurants" element={<AdminRestaurants />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="users" element={<AdminUsers />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
