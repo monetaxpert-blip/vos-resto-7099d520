@@ -53,7 +53,7 @@ const Auth = () => {
         if (error) throw error;
         toast.success('Bienvenue !');
       }
-      navigate('/profile', { replace: true });
+      // useEffect handles redirect (admin -> /admin, otherwise /profile)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erreur';
       if (msg.toLowerCase().includes('invalid login')) {
