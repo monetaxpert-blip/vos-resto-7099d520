@@ -16,12 +16,13 @@ interface TrackParams {
 export async function track(eventType: EventType, params: TrackParams = {}): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from('analytics_events').insert({
+    const payload = {
       event_type: eventType,
       user_id: user?.id ?? null,
       restaurant_id: params.restaurantId ?? null,
-      metadata: params.metadata ?? null,
-    });
+      metadata: (params.metadata ?? null) as never,
+    };
+    await supabase.from('analytics_events').insert(payload);
   } catch {
     // silent
   }
