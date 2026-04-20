@@ -8,6 +8,7 @@ import TiltCard from '@/components/animations/TiltCard';
 import { getRestaurantImage } from '@/lib/photos';
 import { useFavorites } from '@/hooks/useFavorites';
 import { usePublicPlans } from '@/hooks/useOwnership';
+import { track } from '@/lib/analytics';
 import PlanBadge from './PlanBadge';
 
 interface RestaurantCardProps {
@@ -34,6 +35,11 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
       ),
     [restaurant.id, restaurant.categories, restaurant.name, restaurant.quartier]
   );
+
+  const handleClick = () => {
+    track('restaurant_click', { restaurantId: restaurant.id });
+    navigate(`/restaurant/${restaurant.id}`);
+  };
 
   const handleFavClick = (e: React.MouseEvent) => {
     e.stopPropagation();
