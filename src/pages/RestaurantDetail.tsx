@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon } from 'lucide-react';
 import { getRestaurantById, getSimilarRestaurants } from '@/data/queries';
@@ -15,6 +15,7 @@ import RouteButton from '@/components/restaurant/RouteButton';
 import ReservationSheet from '@/components/restaurant/ReservationSheet';
 import MenuSection from '@/components/restaurant/MenuSection';
 import RestaurantMap from '@/components/map/RestaurantMap';
+import { track } from '@/lib/analytics';
 
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -201,10 +202,16 @@ const RestaurantDetail = () => {
           )}
 
           {restaurant.phone && (
-            <a href={`tel:${restaurant.phone}`} className="flex items-start gap-3 group">
+            <a
+              href={restaurant.website?.includes('wa.me') ? restaurant.website : `tel:${restaurant.phone}`}
+              target={restaurant.website?.includes('wa.me') ? '_blank' : undefined}
+              rel="noopener noreferrer"
+              onClick={() => track(restaurant.website?.includes('wa.me') ? 'whatsapp_click' : 'restaurant_click', { restaurantId: restaurant.id, metadata: { action: 'phone' } })}
+              className="flex items-start gap-3 group"
+            >
               <Phone size={18} className="text-primary mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium group-hover:text-primary transition-colors">Téléphone</p>
+                <p className="text-sm font-medium group-hover:text-primary transition-colors">{restaurant.website?.includes('wa.me') ? 'WhatsApp' : 'Téléphone'}</p>
                 <p className="text-xs text-muted-foreground">{restaurant.phone}</p>
               </div>
             </a>
