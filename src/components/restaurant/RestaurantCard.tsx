@@ -7,6 +7,8 @@ import RatingBadge from './RatingBadge';
 import TiltCard from '@/components/animations/TiltCard';
 import { getRestaurantImage } from '@/lib/photos';
 import { useFavorites } from '@/hooks/useFavorites';
+import { usePublicPlans } from '@/hooks/useOwnership';
+import PlanBadge from './PlanBadge';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
