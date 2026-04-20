@@ -13,6 +13,8 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | 'unspecified'>('unspecified');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,12 +26,20 @@ const Auth = () => {
     setLoading(true);
     try {
       if (mode === 'signup') {
+        const { avatarFor } = await import('@/lib/avatar');
+        const seed = displayName || email.split('@')[0];
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: { display_name: displayName || email.split('@')[0] },
+            data: {
+              display_name: seed,
+              first_name: displayName,
+              phone,
+              gender,
+              avatar_url: avatarFor(seed, gender),
+            },
           },
         });
         if (error) throw error;
@@ -83,15 +93,40 @@ const Auth = () => {
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-3">
           {mode === 'signup' && (
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Votre prénom"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full h-12 rounded-2xl bg-secondary px-4 text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
+            <>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Votre prénom"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full h-12 rounded-2xl bg-secondary px-4 text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+              <div className="relative">
+                <input
+                  type="tel"
+                  placeholder="Téléphone (optionnel)"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full h-12 rounded-2xl bg-secondary px-4 text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(['male','female','unspecified'] as const).map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGender(g)}
+                    className={`h-11 rounded-2xl text-xs font-semibold transition-colors ${
+                      gender === g ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'
+                    }`}
+                  >
+                    {g === 'male' ? 'Homme' : g === 'female' ? 'Femme' : 'Non précisé'}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
           <div className="relative">
             <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
