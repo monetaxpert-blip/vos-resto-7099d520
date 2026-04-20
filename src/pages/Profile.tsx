@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight } from 'lucide-react';
+import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -61,6 +61,22 @@ const Profile = () => {
           </button>
         </div>
       )}
+
+      {/* Restaurateur CTA */}
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        onClick={() => navigate(user ? '/restaurant/dashboard' : '/auth?redirect=/restaurant/onboarding')}
+        className="w-full mb-4 rounded-2xl p-4 text-left bg-gradient-to-r from-primary to-orange-600 text-primary-foreground shadow-card flex items-center gap-3"
+      >
+        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+          <Store size={20} />
+        </div>
+        <div className="flex-1">
+          <p className="font-bold text-sm">Vous êtes restaurateur ?</p>
+          <p className="text-xs opacity-90">Inscrivez votre établissement — 30 jours gratuits</p>
+        </div>
+        <ChevronRight size={18} />
+      </motion.button>
 
       {/* PWA install card */}
       <div className="mb-6">
