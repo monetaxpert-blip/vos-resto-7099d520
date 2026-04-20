@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,9 +17,14 @@ const Auth = () => {
   const [gender, setGender] = useState<'male' | 'female' | 'unspecified'>('unspecified');
   const [loading, setLoading] = useState(false);
 
+  const { user, isAdmin } = useAuth();
+  const redirect = new URLSearchParams(window.location.search).get('redirect');
   useEffect(() => {
-    if (user) navigate('/profile', { replace: true });
-  }, [user, navigate]);
+    if (!user) return;
+    if (redirect) navigate(redirect, { replace: true });
+    else if (isAdmin) navigate('/admin', { replace: true });
+    else navigate('/profile', { replace: true });
+  }, [user, isAdmin, navigate, redirect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
