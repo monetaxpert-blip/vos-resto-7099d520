@@ -17,7 +17,6 @@ const Auth = () => {
   const [gender, setGender] = useState<'male' | 'female' | 'unspecified'>('unspecified');
   const [loading, setLoading] = useState(false);
 
-  const { user, isAdmin } = useAuth();
   const redirect = new URLSearchParams(window.location.search).get('redirect');
   useEffect(() => {
     if (!user) return;
