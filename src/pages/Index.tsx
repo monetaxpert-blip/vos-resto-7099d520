@@ -157,6 +157,8 @@ const TopRatedSection = memo(() => {
 });
 TopRatedSection.displayName = 'TopRatedSection';
 
+import Footer from '@/components/layout/Footer';
+
 const Index = () => (
   <div className="min-h-screen pb-24 bg-background">
     <HeroSection />
@@ -164,6 +166,7 @@ const Index = () => (
     <TrendingSection />
     <QuartierExplorer />
     <TopRatedSection />
+    <Footer />
   </div>
 );
 
