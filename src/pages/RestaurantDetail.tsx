@@ -57,6 +57,11 @@ const RestaurantDetail = () => {
     );
   }, [restaurant, dbPhotos]);
 
+  useEffect(() => {
+    if (restaurant?.id) track('restaurant_view', { restaurantId: restaurant.id });
+  }, [restaurant?.id]);
+
+
   if (!restaurant) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
