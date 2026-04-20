@@ -59,3 +59,17 @@ export function usePublicPlans() {
 
   return plans;
 }
+
+/** Sort restaurants ELITE > PREMIUM > standard, preserving original order within each tier. */
+export function useSortByPlan(list: Restaurant[]): Restaurant[] {
+  const plans = usePublicPlans();
+  return useMemo(() => {
+    const ranked = list.map((r, i) => ({
+      r,
+      i,
+      rank: plans[r.id] ? PLAN_RANK[plans[r.id]] : 0,
+    }));
+    ranked.sort((a, b) => (b.rank - a.rank) || (a.i - b.i));
+    return ranked.map((x) => x.r);
+  }, [list, plans]);
+}
