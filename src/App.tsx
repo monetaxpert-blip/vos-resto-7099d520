@@ -12,6 +12,8 @@ import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import MapView from "./pages/MapView";
+import RestaurantOnboarding from "./pages/RestaurantOnboarding";
+import RestaurantDashboard from "./pages/RestaurantDashboard";
 import NotFound from "./pages/NotFound";
 import SplashScreen from "@/components/pwa/SplashScreen";
 
