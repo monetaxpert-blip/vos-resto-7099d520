@@ -19,6 +19,8 @@ interface RestaurantCardProps {
 const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps) => {
   const navigate = useNavigate();
   const { isFavorite, toggle } = useFavorites();
+  const plans = usePublicPlans();
+  const plan = plans[restaurant.id];
   const fav = isFavorite(restaurant.id);
 
   const imageUrl = useMemo(
