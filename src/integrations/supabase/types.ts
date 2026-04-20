@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          metadata: Json | null
+          restaurant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id?: string
+          metadata?: Json | null
+          restaurant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          metadata?: Json | null
+          restaurant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -97,21 +124,33 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          first_name: string | null
+          gender: string | null
           id: string
+          last_name: string | null
+          phone: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
+          gender?: string | null
           id: string
+          last_name?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
+          gender?: string | null
           id?: string
+          last_name?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -236,17 +275,136 @@ export type Database = {
         }
         Relationships: []
       }
+      restaurants: {
+        Row: {
+          address: string | null
+          admin_plan: Database["public"]["Enums"]["admin_plan"]
+          badges: string[]
+          categories: string[]
+          city: string
+          created_at: string
+          display_order: number
+          email: string | null
+          hours: string | null
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          is_pinned: boolean
+          lat: number | null
+          lng: number | null
+          name: string
+          phone: string | null
+          place_id: string | null
+          price_level: string | null
+          quartier: string | null
+          rating: number | null
+          rating_count: number
+          social_media: Json | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          admin_plan?: Database["public"]["Enums"]["admin_plan"]
+          badges?: string[]
+          categories?: string[]
+          city?: string
+          created_at?: string
+          display_order?: number
+          email?: string | null
+          hours?: string | null
+          id: string
+          is_active?: boolean
+          is_featured?: boolean
+          is_pinned?: boolean
+          lat?: number | null
+          lng?: number | null
+          name: string
+          phone?: string | null
+          place_id?: string | null
+          price_level?: string | null
+          quartier?: string | null
+          rating?: number | null
+          rating_count?: number
+          social_media?: Json | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          admin_plan?: Database["public"]["Enums"]["admin_plan"]
+          badges?: string[]
+          categories?: string[]
+          city?: string
+          created_at?: string
+          display_order?: number
+          email?: string | null
+          hours?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          is_pinned?: boolean
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          phone?: string | null
+          place_id?: string | null
+          price_level?: string | null
+          quartier?: string | null
+          rating?: number | null
+          rating_count?: number
+          social_media?: Json | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      admin_plan: "Standard" | "Premium" | "Elite"
+      event_type:
+        | "restaurant_view"
+        | "restaurant_click"
+        | "whatsapp_click"
+        | "direction_click"
+        | "search_event"
       reservation_status: "pending" | "confirmed" | "cancelled"
       subscription_plan: "PRO" | "PREMIUM" | "ELITE"
       subscription_status: "trial" | "active" | "expired" | "cancelled"
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -374,9 +532,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_plan: ["Standard", "Premium", "Elite"],
+      event_type: [
+        "restaurant_view",
+        "restaurant_click",
+        "whatsapp_click",
+        "direction_click",
+        "search_event",
+      ],
       reservation_status: ["pending", "confirmed", "cancelled"],
       subscription_plan: ["PRO", "PREMIUM", "ELITE"],
       subscription_status: ["trial", "active", "expired", "cancelled"],
+      user_role: ["admin", "user"],
     },
   },
 } as const
