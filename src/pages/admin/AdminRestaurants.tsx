@@ -19,9 +19,9 @@ const AdminRestaurants = () => {
     ? list.filter((r) => r.name.toLowerCase().includes(q.toLowerCase()))
     : list;
 
-  const update = async (id: string, patch: Partial<Record<string, unknown>>) => {
+  const update = async (id: string, patch: Record<string, unknown>) => {
     setSavingId(id);
-    const { error } = await supabase.from('restaurants').update(patch).eq('id', id);
+    const { error } = await supabase.from('restaurants').update(patch as never).eq('id', id);
     setSavingId(null);
     if (error) {
       toast.error('Erreur de sauvegarde');
