@@ -6,9 +6,10 @@ import { getTrending, getTopRated, getQuartierCounts } from '@/data/queries';
 import { TOP_CATEGORIES, CATEGORY_EMOJIS } from '@/data/types';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import StaggerList from '@/components/animations/StaggerList';
+import { useSortByPlan } from '@/hooks/useOwnership';
 
-const trending = getTrending(10);
-const topRated = getTopRated(12);
+const trendingRaw = getTrending(10);
+const topRatedRaw = getTopRated(12);
 const quartierCounts = getQuartierCounts();
 
 const HeroSection = memo(() => {
@@ -84,19 +85,22 @@ const CategoryPills = memo(() => {
 });
 CategoryPills.displayName = 'CategoryPills';
 
-const TrendingSection = memo(() => (
-  <section className="mt-8">
-    <div className="px-5 flex items-center justify-between mb-4">
-      <h2 className="text-xl font-bold">Tendances 🔥</h2>
-      <span className="text-xs text-muted-foreground">Les plus populaires</span>
-    </div>
-    <div className="flex gap-4 overflow-x-auto hide-scrollbar px-5 pb-2">
-      {trending.map((r, i) => (
-        <RestaurantCard key={r.id} restaurant={r} variant="featured" index={i} />
-      ))}
-    </div>
-  </section>
-));
+const TrendingSection = memo(() => {
+  const trending = useSortByPlan(trendingRaw);
+  return (
+    <section className="mt-8">
+      <div className="px-5 flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold">Tendances 🔥</h2>
+        <span className="text-xs text-muted-foreground">Les plus populaires</span>
+      </div>
+      <div className="flex gap-4 overflow-x-auto hide-scrollbar px-5 pb-2">
+        {trending.map((r, i) => (
+          <RestaurantCard key={r.id} restaurant={r} variant="featured" index={i} />
+        ))}
+      </div>
+    </section>
+  );
+});
 TrendingSection.displayName = 'TrendingSection';
 
 const QuartierExplorer = memo(() => {
@@ -138,16 +142,19 @@ const QuartierExplorer = memo(() => {
 });
 QuartierExplorer.displayName = 'QuartierExplorer';
 
-const TopRatedSection = memo(() => (
-  <section className="mt-10 px-5">
-    <h2 className="text-xl font-bold mb-4">Les mieux notés ⭐</h2>
-    <StaggerList className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {topRated.map((r) => (
-        <RestaurantCard key={r.id} restaurant={r} />
-      ))}
-    </StaggerList>
-  </section>
-));
+const TopRatedSection = memo(() => {
+  const topRated = useSortByPlan(topRatedRaw);
+  return (
+    <section className="mt-10 px-5">
+      <h2 className="text-xl font-bold mb-4">Les mieux notés ⭐</h2>
+      <StaggerList className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {topRated.map((r) => (
+          <RestaurantCard key={r.id} restaurant={r} />
+        ))}
+      </StaggerList>
+    </section>
+  );
+});
 TopRatedSection.displayName = 'TopRatedSection';
 
 const Index = () => (
