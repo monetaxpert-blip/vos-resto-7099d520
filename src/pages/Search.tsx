@@ -10,6 +10,7 @@ import { restaurantFitsBudget } from '@/lib/menuPricing';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import CategoryTag from '@/components/restaurant/CategoryTag';
 import BudgetFilter from '@/components/search/BudgetFilter';
+import { track } from '@/lib/analytics';
 
 const BUDGET_BOUNDS: [number, number] = [1000, 30000];
 
@@ -82,6 +83,23 @@ const SearchPage = () => {
   };
 
   const hasFilters = selectedQuartier || selectedCategory || query || budgetActive;
+
+  // Debounced search tracking
+  useEffect(() => {
+    if (!query.trim() && !selectedQuartier && !selectedCategory && !budgetActive) return;
+    const t = setTimeout(() => {
+      track('search_event', {
+        metadata: {
+          query: query.trim() || null,
+          quartier: selectedQuartier,
+          category: selectedCategory,
+          budget: budgetActive ? effectiveBudgetMax : null,
+          results_count: results.length,
+        },
+      });
+    }, 800);
+    return () => clearTimeout(t);
+  }, [query, selectedQuartier, selectedCategory, budgetActive, effectiveBudgetMax, results.length]);
 
   return (
     <div className="min-h-screen pb-24 bg-background">
