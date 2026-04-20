@@ -71,6 +71,11 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
               <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} />
             </div>
             <div className="absolute top-3 right-3">{favBtn}</div>
+            {plan && (
+              <div className="absolute top-12 left-3">
+                <PlanBadge plan={plan} />
+              </div>
+            )}
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <h3 className="text-white font-bold text-lg leading-tight mb-1">{restaurant.name}</h3>
               <div className="flex items-center gap-1 text-white/80 text-xs">
@@ -103,7 +108,10 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
           loading="lazy"
         />
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm truncate">{restaurant.name}</h3>
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-semibold text-sm truncate">{restaurant.name}</h3>
+            {plan && <PlanBadge plan={plan} />}
+          </div>
           <div className="flex items-center gap-1 text-muted-foreground text-xs mt-0.5">
             <MapPin size={10} />
             <span>{restaurant.quartier || restaurant.city}</span>
@@ -134,6 +142,11 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
           <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} />
         </div>
         <div className="absolute top-3 right-3">{favBtn}</div>
+        {plan && (
+          <div className="absolute bottom-3 left-3">
+            <PlanBadge plan={plan} />
+          </div>
+        )}
       </div>
       <div className="p-4">
         <h3 className="font-bold text-base truncate">{restaurant.name}</h3>
