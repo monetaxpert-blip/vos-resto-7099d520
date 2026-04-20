@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { OwnershipRow, Plan } from '@/lib/subscription';
+import { PLAN_RANK, type OwnershipRow, type Plan } from '@/lib/subscription';
+import type { Restaurant } from '@/data/types';
 
 export function useMyOwnerships() {
   const { user } = useAuth();
