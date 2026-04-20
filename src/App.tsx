@@ -35,6 +35,8 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/map" element={<MapView />} />
+            <Route path="/restaurant/onboarding" element={<RestaurantOnboarding />} />
+            <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
