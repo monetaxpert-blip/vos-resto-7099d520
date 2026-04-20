@@ -35,6 +35,63 @@ export type Database = {
         }
         Relationships: []
       }
+      owned_restaurants: {
+        Row: {
+          address: string | null
+          categories: string[]
+          city: string
+          created_at: string
+          email: string | null
+          hours: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          name: string
+          owner_id: string
+          phone: string | null
+          price_level: string | null
+          quartier: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          categories?: string[]
+          city?: string
+          created_at?: string
+          email?: string | null
+          hours?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          owner_id: string
+          phone?: string | null
+          price_level?: string | null
+          quartier?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          categories?: string[]
+          city?: string
+          created_at?: string
+          email?: string | null
+          hours?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          price_level?: string | null
+          quartier?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -98,6 +155,57 @@ export type Database = {
         }
         Relationships: []
       }
+      restaurant_owners: {
+        Row: {
+          created_at: string
+          id: string
+          is_owned_listing: boolean
+          payment_enabled: boolean
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          restaurant_id: string
+          restaurant_name: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          subscription_ends_at: string | null
+          subscription_mode: string
+          subscription_started_at: string | null
+          trial_ends_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_owned_listing?: boolean
+          payment_enabled?: boolean
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          restaurant_id: string
+          restaurant_name: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_ends_at?: string | null
+          subscription_mode?: string
+          subscription_started_at?: string | null
+          trial_ends_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_owned_listing?: boolean
+          payment_enabled?: boolean
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          restaurant_id?: string
+          restaurant_name?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_ends_at?: string | null
+          subscription_mode?: string
+          subscription_started_at?: string | null
+          trial_ends_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       restaurant_photos: {
         Row: {
           created_at: string
@@ -137,6 +245,8 @@ export type Database = {
     }
     Enums: {
       reservation_status: "pending" | "confirmed" | "cancelled"
+      subscription_plan: "PRO" | "PREMIUM" | "ELITE"
+      subscription_status: "trial" | "active" | "expired" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -265,6 +375,8 @@ export const Constants = {
   public: {
     Enums: {
       reservation_status: ["pending", "confirmed", "cancelled"],
+      subscription_plan: ["PRO", "PREMIUM", "ELITE"],
+      subscription_status: ["trial", "active", "expired", "cancelled"],
     },
   },
 } as const
