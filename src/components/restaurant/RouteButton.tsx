@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Navigation, Loader2 } from 'lucide-react';
 import { Restaurant } from '@/data/types';
 import { distanceKm, formatDistance, estimateDriveMinutes } from '@/lib/format';
+import { track } from '@/lib/analytics';
 import { toast } from 'sonner';
 
 interface RouteButtonProps {
@@ -52,6 +53,7 @@ const RouteButton = ({ restaurant }: RouteButtonProps) => {
   const hasCoords = !!(restaurant.lat && restaurant.lng);
 
   const openMaps = () => {
+    track('direction_click', { restaurantId: restaurant.id });
     const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
     let url: string;
 
