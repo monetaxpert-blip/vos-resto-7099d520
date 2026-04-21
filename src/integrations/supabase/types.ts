@@ -62,6 +62,75 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          audience: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          restaurant_id: string | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          audience?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          restaurant_id?: string | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          restaurant_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      offers: {
+        Row: {
+          created_at: string
+          description: string | null
+          discount: number | null
+          id: string
+          restaurant_id: string
+          title: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discount?: number | null
+          id?: string
+          restaurant_id: string
+          title: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discount?: number | null
+          id?: string
+          restaurant_id?: string
+          title?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       owned_restaurants: {
         Row: {
           address: string | null
@@ -194,6 +263,39 @@ export type Database = {
         }
         Relationships: []
       }
+      restaurant_menu: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          price?: number
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price?: number
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       restaurant_owners: {
         Row: {
           created_at: string
@@ -253,7 +355,9 @@ export type Database = {
           is_hero: boolean
           restaurant_id: string
           storage_path: string
+          updated_at: string
           uploaded_by: string | null
+          url: string | null
         }
         Insert: {
           created_at?: string
@@ -262,7 +366,9 @@ export type Database = {
           is_hero?: boolean
           restaurant_id: string
           storage_path: string
+          updated_at?: string
           uploaded_by?: string | null
+          url?: string | null
         }
         Update: {
           created_at?: string
@@ -271,18 +377,25 @@ export type Database = {
           is_hero?: boolean
           restaurant_id?: string
           storage_path?: string
+          updated_at?: string
           uploaded_by?: string | null
+          url?: string | null
         }
         Relationships: []
       }
       restaurants: {
         Row: {
           address: string | null
+          address_detail: string | null
           admin_plan: Database["public"]["Enums"]["admin_plan"]
+          average_price: number | null
           badges: string[]
+          banner_image: string | null
           categories: string[]
           city: string
           created_at: string
+          cuisine_type: string | null
+          description: string | null
           display_order: number
           email: string | null
           hours: string | null
@@ -291,25 +404,37 @@ export type Database = {
           is_featured: boolean
           is_pinned: boolean
           lat: number | null
+          latitude: number | null
           lng: number | null
+          longitude: number | null
           name: string
+          opening_hours: Json
           phone: string | null
           place_id: string | null
           price_level: string | null
+          price_range: string | null
+          profile_image: string | null
           quartier: string | null
           rating: number | null
           rating_count: number
           social_media: Json | null
           updated_at: string
           website: string | null
+          whatsapp_link: string | null
+          whatsapp_number: string | null
         }
         Insert: {
           address?: string | null
+          address_detail?: string | null
           admin_plan?: Database["public"]["Enums"]["admin_plan"]
+          average_price?: number | null
           badges?: string[]
+          banner_image?: string | null
           categories?: string[]
           city?: string
           created_at?: string
+          cuisine_type?: string | null
+          description?: string | null
           display_order?: number
           email?: string | null
           hours?: string | null
@@ -318,25 +443,37 @@ export type Database = {
           is_featured?: boolean
           is_pinned?: boolean
           lat?: number | null
+          latitude?: number | null
           lng?: number | null
+          longitude?: number | null
           name: string
+          opening_hours?: Json
           phone?: string | null
           place_id?: string | null
           price_level?: string | null
+          price_range?: string | null
+          profile_image?: string | null
           quartier?: string | null
           rating?: number | null
           rating_count?: number
           social_media?: Json | null
           updated_at?: string
           website?: string | null
+          whatsapp_link?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
           address?: string | null
+          address_detail?: string | null
           admin_plan?: Database["public"]["Enums"]["admin_plan"]
+          average_price?: number | null
           badges?: string[]
+          banner_image?: string | null
           categories?: string[]
           city?: string
           created_at?: string
+          cuisine_type?: string | null
+          description?: string | null
           display_order?: number
           email?: string | null
           hours?: string | null
@@ -345,17 +482,78 @@ export type Database = {
           is_featured?: boolean
           is_pinned?: boolean
           lat?: number | null
+          latitude?: number | null
           lng?: number | null
+          longitude?: number | null
           name?: string
+          opening_hours?: Json
           phone?: string | null
           place_id?: string | null
           price_level?: string | null
+          price_range?: string | null
+          profile_image?: string | null
           quartier?: string | null
           rating?: number | null
           rating_count?: number
           social_media?: Json | null
           updated_at?: string
           website?: string | null
+          whatsapp_link?: string | null
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
+      review_helpful_votes: {
+        Row: {
+          created_at: string
+          id: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          helpful_count: number
+          id: string
+          rating: number
+          restaurant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          rating: number
+          restaurant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          rating?: number
+          restaurant_id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -392,6 +590,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_owns_restaurant: {
+        Args: { _restaurant_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       admin_plan: "Standard" | "Premium" | "Elite"
@@ -404,7 +606,7 @@ export type Database = {
       reservation_status: "pending" | "confirmed" | "cancelled"
       subscription_plan: "PRO" | "PREMIUM" | "ELITE"
       subscription_status: "trial" | "active" | "expired" | "cancelled"
-      user_role: "admin" | "user"
+      user_role: "admin" | "user" | "restaurant_owner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -543,7 +745,7 @@ export const Constants = {
       reservation_status: ["pending", "confirmed", "cancelled"],
       subscription_plan: ["PRO", "PREMIUM", "ELITE"],
       subscription_status: ["trial", "active", "expired", "cancelled"],
-      user_role: ["admin", "user"],
+      user_role: ["admin", "user", "restaurant_owner"],
     },
   },
 } as const

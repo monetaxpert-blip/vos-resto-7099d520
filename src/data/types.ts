@@ -5,6 +5,14 @@ export interface SocialMedia {
   youtube: string | null;
 }
 
+export interface OpeningHoursDay {
+  open: boolean;
+  start: string;
+  end: string;
+}
+
+export type OpeningHours = Record<string, OpeningHoursDay>;
+
 export interface Restaurant {
   id: string;
   name: string;
@@ -23,6 +31,24 @@ export interface Restaurant {
   hours: string | null;
   placeId: string | null;
   socialMedia: SocialMedia | null;
+  profileImage?: string | null;
+  bannerImage?: string | null;
+  description?: string | null;
+  whatsappNumber?: string | null;
+  whatsappLink?: string | null;
+  averagePrice?: number | null;
+  priceRange?: string | null;
+  cuisineType?: string | null;
+  addressDetail?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  openingHours?: OpeningHours | null;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  isPinned?: boolean;
+  displayOrder?: number;
+  badges?: string[];
+  adminPlan?: 'Standard' | 'Premium' | 'Elite';
 }
 
 export const QUARTIERS = [
