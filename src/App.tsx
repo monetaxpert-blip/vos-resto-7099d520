@@ -21,6 +21,7 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminUsers from "./pages/admin/AdminUsers";
 import NotFound from "./pages/NotFound";
 import SplashScreen from "@/components/pwa/SplashScreen";
+import OwnerGuard from "@/components/admin/OwnerGuard";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +42,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/map" element={<MapView />} />
             <Route path="/restaurant/onboarding" element={<RestaurantOnboarding />} />
-            <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
+            <Route path="/restaurant/dashboard" element={<OwnerGuard><RestaurantDashboard /></OwnerGuard>} />
+            <Route path="/dashboard" element={<OwnerGuard><RestaurantDashboard /></OwnerGuard>} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminOverview />} />
               <Route path="restaurants" element={<AdminRestaurants />} />

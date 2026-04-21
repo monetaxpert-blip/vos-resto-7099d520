@@ -6,12 +6,9 @@ interface PhotoRow {
   storage_path: string;
   is_hero: boolean;
   display_order: number;
+  url: string | null;
 }
 
-/**
- * Fetch user-uploaded photos for a restaurant from the DB.
- * Returns empty array if none exist — caller falls back to curated Unsplash.
- */
 export const useRestaurantPhotos = (restaurantId: string | undefined) => {
   return useQuery({
     queryKey: ['restaurant-photos', restaurantId],
@@ -19,14 +16,14 @@ export const useRestaurantPhotos = (restaurantId: string | undefined) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('restaurant_photos')
-        .select('id, storage_path, is_hero, display_order')
+        .select('id, storage_path, is_hero, display_order, url')
         .eq('restaurant_id', restaurantId!)
         .order('display_order', { ascending: true });
       if (error) throw error;
       const rows = (data ?? []) as PhotoRow[];
-      return rows.map((r) => ({
-        ...r,
-        url: supabase.storage.from('restaurant-photos').getPublicUrl(r.storage_path).data.publicUrl,
+      return rows.map((row) => ({
+        ...row,
+        url: row.url || supabase.storage.from('restaurant-photos').getPublicUrl(row.storage_path).data.publicUrl,
       }));
     },
   });

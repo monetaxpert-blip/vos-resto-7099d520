@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Restaurant } from '@/data/types';
 
@@ -22,6 +22,8 @@ interface RawRow {
   website: string | null;
   lat: number | null;
   lng: number | null;
+  latitude: number | null;
+  longitude: number | null;
   rating: number | null;
   rating_count: number;
   categories: string[];
@@ -35,6 +37,16 @@ interface RawRow {
   display_order: number;
   badges: string[];
   admin_plan: 'Standard' | 'Premium' | 'Elite';
+  profile_image: string | null;
+  banner_image: string | null;
+  description: string | null;
+  whatsapp_number: string | null;
+  whatsapp_link: string | null;
+  average_price: number | null;
+  price_range: string | null;
+  cuisine_type: string | null;
+  address_detail: string | null;
+  opening_hours: Record<string, unknown> | null;
 }
 
 const mapRow = (r: RawRow): DBRestaurant => ({
@@ -46,8 +58,10 @@ const mapRow = (r: RawRow): DBRestaurant => ({
   phone: r.phone,
   email: r.email,
   website: r.website,
-  lat: r.lat,
-  lng: r.lng,
+  lat: r.latitude ?? r.lat,
+  lng: r.longitude ?? r.lng,
+  latitude: r.latitude ?? r.lat,
+  longitude: r.longitude ?? r.lng,
   rating: r.rating,
   ratingCount: r.rating_count,
   categories: r.categories ?? [],
@@ -62,6 +76,16 @@ const mapRow = (r: RawRow): DBRestaurant => ({
         youtube: r.social_media.youtube ?? null,
       }
     : null,
+  profileImage: r.profile_image,
+  bannerImage: r.banner_image,
+  description: r.description,
+  whatsappNumber: r.whatsapp_number,
+  whatsappLink: r.whatsapp_link,
+  averagePrice: r.average_price,
+  priceRange: r.price_range,
+  cuisineType: r.cuisine_type,
+  addressDetail: r.address_detail,
+  openingHours: r.opening_hours ?? undefined,
   isActive: r.is_active,
   isFeatured: r.is_featured,
   isPinned: r.is_pinned,
@@ -70,34 +94,39 @@ const mapRow = (r: RawRow): DBRestaurant => ({
   adminPlan: r.admin_plan,
 });
 
-/** Hook : all active restaurants from DB, refreshed in real time via Supabase Realtime. */
 export function useDBRestaurants(opts: { adminMode?: boolean } = {}) {
   const [list, setList] = useState<DBRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
-    let q = supabase.from('restaurants').select('*');
-    if (!opts.adminMode) q = q.eq('is_active', true);
-    const { data } = await q.order('is_pinned', { ascending: false })
+    setLoading(true);
+    let query = supabase.from('restaurants').select('*');
+    if (!opts.adminMode) query = query.eq('is_active', true);
+    const { data } = await query
+      .order('is_pinned', { ascending: false })
+      .order('is_featured', { ascending: false })
       .order('display_order', { ascending: false })
       .order('rating_count', { ascending: false });
-    setList((data ?? []).map(mapRow as never));
+    setList((data ?? []).map((row) => mapRow(row as RawRow)));
     setLoading(false);
   };
 
   useEffect(() => {
     refresh();
     const channel = supabase
-      .channel('restaurants-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurants' }, () => {
-        refresh();
-      })
+      .channel(`restaurants-changes-${opts.adminMode ? 'admin' : 'public'}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurants' }, refresh)
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opts.adminMode]);
 
   return { list, loading, refresh };
+}
+
+export function useRestaurantById(id?: string, opts: { adminMode?: boolean } = {}) {
+  const { list, loading, refresh } = useDBRestaurants(opts);
+  const restaurant = useMemo(() => list.find((item) => item.id === id), [id, list]);
+  return { restaurant, list, loading, refresh };
 }

@@ -1,15 +1,16 @@
 import { motion } from 'framer-motion';
-import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store } from 'lucide-react';
+import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useReservations } from '@/hooks/useReservations';
 import { toast } from 'sonner';
 import InstallButton from '@/components/pwa/InstallButton';
+import { avatarFor } from '@/lib/avatar';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, signOut, loading } = useAuth();
+  const { user, signOut, loading, isAdmin, isRestaurantOwner } = useAuth();
   const { ids: favIds } = useFavorites();
   const { reservations } = useReservations();
 
@@ -18,6 +19,9 @@ const Profile = () => {
     (user?.user_metadata?.display_name as string | undefined) ||
     user?.email?.split('@')[0] ||
     'Invité';
+  const avatar = user
+    ? ((user.user_metadata?.avatar_url as string | undefined) || avatarFor(displayName, (user.user_metadata?.gender as 'male' | 'female' | 'unspecified' | undefined) ?? 'unspecified'))
+    : null;
 
   const handleSignOut = async () => {
     await signOut();
@@ -30,9 +34,7 @@ const Profile = () => {
       <h1 className="text-2xl font-extrabold mb-6">Profil</h1>
 
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-          <User size={28} className="text-primary" />
-        </div>
+        {avatar ? <img src={avatar} alt={displayName} className="w-16 h-16 rounded-full bg-primary/10 object-cover" /> : <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"><User size={28} className="text-primary" /></div>}
         <div className="min-w-0">
           <p className="font-bold text-lg truncate">{displayName}</p>
           <p className="text-sm text-muted-foreground truncate">
@@ -65,7 +67,7 @@ const Profile = () => {
       {/* Restaurateur CTA */}
       <motion.button
         whileTap={{ scale: 0.98 }}
-        onClick={() => navigate(user ? '/restaurant/dashboard' : '/auth?redirect=/restaurant/onboarding')}
+        onClick={() => navigate(user ? '/dashboard' : '/auth?redirect=/restaurant/onboarding')}
         className="w-full mb-4 rounded-2xl p-4 text-left bg-gradient-to-r from-primary to-orange-600 text-primary-foreground shadow-card flex items-center gap-3"
       >
         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
@@ -77,6 +79,23 @@ const Profile = () => {
         </div>
         <ChevronRight size={18} />
       </motion.button>
+
+      {(isRestaurantOwner || isAdmin) && (
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}
+          className="w-full mb-4 rounded-2xl border border-border bg-card p-4 text-left shadow-card flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Shield size={20} className="text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-sm">{isAdmin ? 'Espace administrateur' : 'Dashboard restaurant'}</p>
+            <p className="text-xs text-muted-foreground">Accéder à vos outils de gestion</p>
+          </div>
+          <ChevronRight size={18} />
+        </motion.button>
+      )}
 
       {/* PWA install card */}
       <div className="mb-6">
