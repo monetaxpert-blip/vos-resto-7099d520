@@ -1,9 +1,10 @@
 import { forwardRef, memo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, User } from 'lucide-react';
+import { Home, Search, Heart, User, LayoutDashboard } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 
-const tabs = [
+const baseTabs = [
   { path: '/', icon: Home, label: 'Accueil' },
   { path: '/search', icon: Search, label: 'Recherche' },
   { path: '/favorites', icon: Heart, label: 'Réservations' },
@@ -16,6 +17,13 @@ const BottomNav = memo(
   forwardRef<HTMLElement>((_, ref) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { isAdmin, isRestaurantOwner } = useAuth();
+
+    const tabs = isAdmin
+      ? [...baseTabs.slice(0, 3), { path: '/admin', icon: LayoutDashboard, label: 'Admin' }, baseTabs[3]]
+      : isRestaurantOwner
+        ? [...baseTabs.slice(0, 3), { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }, baseTabs[3]]
+        : baseTabs;
 
     if (HIDDEN_ROUTES.includes(location.pathname)) return null;
 
