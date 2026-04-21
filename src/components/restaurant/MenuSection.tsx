@@ -1,10 +1,22 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { MenuCategory } from '@/data/menus';
 import { formatFCFA } from '@/lib/format';
 
+export interface MenuSectionItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+}
+
+export interface MenuSectionCategory {
+  id: string;
+  name: string;
+  items: MenuSectionItem[];
+}
+
 interface MenuSectionProps {
-  menu: MenuCategory[];
+  menu: MenuSectionCategory[];
 }
 
 const MenuSection = ({ menu }: MenuSectionProps) => {
@@ -22,8 +34,6 @@ const MenuSection = ({ menu }: MenuSectionProps) => {
   return (
     <section className="mt-8">
       <h2 className="text-lg font-bold mb-3">Menu</h2>
-
-      {/* Horizontal category nav */}
       <div className="sticky top-0 z-20 -mx-5 px-5 py-2 bg-background/85 backdrop-blur-md border-b border-border/40">
         <div className="flex gap-2 overflow-x-auto hide-scrollbar">
           {menu.map((cat) => (
@@ -42,9 +52,7 @@ const MenuSection = ({ menu }: MenuSectionProps) => {
       <div className="mt-4 space-y-6">
         {menu.map((cat, ci) => (
           <div key={cat.id} id={`menu-cat-${cat.id}`} className="scroll-mt-24">
-            <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground mb-3">
-              {cat.name}
-            </h3>
+            <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground mb-3">{cat.name}</h3>
             <div className="space-y-2">
               {cat.items.map((item, i) => (
                 <motion.div
@@ -57,23 +65,16 @@ const MenuSection = ({ menu }: MenuSectionProps) => {
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">{item.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                      {item.description}
-                    </p>
+                    {item.description && <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{item.description}</p>}
                   </div>
-                  <span className="font-bold text-sm text-primary whitespace-nowrap">
-                    {formatFCFA(item.price)}
-                  </span>
+                  <span className="font-bold text-sm text-primary whitespace-nowrap">{formatFCFA(item.price)}</span>
                 </motion.div>
               ))}
             </div>
           </div>
         ))}
-        <p className="text-[10px] text-muted-foreground text-center pt-2">
-          Prix indicatifs — peuvent varier
-        </p>
+        <p className="text-[10px] text-muted-foreground text-center pt-2">Prix indicatifs — peuvent varier</p>
       </div>
-      {/* anchor list to keep ids referenced */}
       <span className="hidden">{categoryIds.join(',')}</span>
     </section>
   );
