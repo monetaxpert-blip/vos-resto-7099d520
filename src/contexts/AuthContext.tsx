@@ -7,6 +7,7 @@ interface AuthContextValue {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isRestaurantOwner: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -17,19 +18,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isRestaurantOwner, setIsRestaurantOwner] = useState(false);
 
-  const checkAdmin = async (uid: string | undefined) => {
+  const checkRoles = async (uid: string | undefined) => {
     if (!uid) {
       setIsAdmin(false);
+      setIsRestaurantOwner(false);
       return;
     }
     const { data } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', uid)
-      .eq('role', 'admin')
-      .maybeSingle();
-    setIsAdmin(!!data);
+      .eq('user_id', uid);
+    const roles = new Set((data ?? []).map((row) => row.role));
+    setIsAdmin(roles.has('admin'));
+    setIsRestaurantOwner(roles.has('restaurant_owner'));
   };
 
   useEffect(() => {
@@ -37,13 +40,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       // defer to avoid deadlock
-      setTimeout(() => checkAdmin(newSession?.user?.id), 0);
+      setTimeout(() => checkRoles(newSession?.user?.id), 0);
     });
 
     supabase.auth.getSession().then(({ data: { session: existing } }) => {
       setSession(existing);
       setUser(existing?.user ?? null);
-      checkAdmin(existing?.user?.id).finally(() => setLoading(false));
+      checkRoles(existing?.user?.id).finally(() => setLoading(false));
     });
 
     return () => subscription.unsubscribe();
@@ -54,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, signOut }}>
       {children}
     </AuthContext.Provider>
   );
