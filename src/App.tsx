@@ -12,6 +12,7 @@ import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import MapView from "./pages/MapView";
+import Notifications from "./pages/Notifications";
 import RestaurantOnboarding from "./pages/RestaurantOnboarding";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/map" element={<MapView />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/restaurant/onboarding" element={<RestaurantOnboarding />} />
             <Route path="/restaurant/dashboard" element={<OwnerGuard><RestaurantDashboard /></OwnerGuard>} />
             <Route path="/dashboard" element={<OwnerGuard><RestaurantDashboard /></OwnerGuard>} />

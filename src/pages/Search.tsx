@@ -11,8 +11,6 @@ import { track } from '@/lib/analytics';
 import { useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { useSortByPlan } from '@/hooks/useOwnership';
 
-const BUDGET_BOUNDS: [number, number] = [1000, 30000];
-
 const SearchPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -21,7 +19,7 @@ const SearchPage = () => {
   const [query, setQuery] = useState('');
   const [selectedQuartier, setSelectedQuartier] = useState<string | null>(searchParams.get('quartier'));
   const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
-  const [budget, setBudget] = useState<[number, number]>(BUDGET_BOUNDS);
+  const [budgetMax, setBudgetMax] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(!!searchParams.get('quartier') || !!searchParams.get('category'));
 
   useEffect(() => {
@@ -32,8 +30,8 @@ const SearchPage = () => {
   }, [searchParams]);
 
   const inlineBudget = useMemo(() => parseBudgetFromQuery(query), [query]);
-  const effectiveBudgetMax = inlineBudget !== null ? Math.min(inlineBudget, budget[1]) : budget[1];
-  const budgetActive = inlineBudget !== null || budget[0] !== BUDGET_BOUNDS[0] || budget[1] !== BUDGET_BOUNDS[1];
+  const effectiveBudgetMax = inlineBudget !== null ? (budgetMax !== null ? Math.min(inlineBudget, budgetMax) : inlineBudget) : budgetMax;
+  const budgetActive = effectiveBudgetMax !== null && effectiveBudgetMax > 0;
 
   const results = useMemo(() => {
     const textQuery = inlineBudget !== null ? query.replace(/(\d[\d\s.,]*)|fcfa|f\b|budget|moins de|max|\bk\b|<|>/gi, '').trim().toLowerCase() : query.trim().toLowerCase();
@@ -42,7 +40,7 @@ const SearchPage = () => {
       const matchesQuartier = !selectedQuartier || restaurant.quartier === selectedQuartier;
       const matchesCategory = !selectedCategory || restaurant.categories.some((category) => category.toLowerCase().includes(selectedCategory.toLowerCase())) || (restaurant.cuisineType || '').toLowerCase().includes(selectedCategory.toLowerCase());
       const price = restaurant.averagePrice ?? 0;
-      const matchesBudget = !budgetActive || (price > 0 ? price <= effectiveBudgetMax : true);
+      const matchesBudget = !budgetActive || (price > 0 ? price <= effectiveBudgetMax! : true);
       return matchesText && matchesQuartier && matchesCategory && matchesBudget;
     });
   }, [budgetActive, effectiveBudgetMax, inlineBudget, query, ranked, selectedCategory, selectedQuartier]);
@@ -66,7 +64,7 @@ const SearchPage = () => {
   const clearFilters = () => {
     setSelectedQuartier(null);
     setSelectedCategory(null);
-    setBudget(BUDGET_BOUNDS);
+    setBudgetMax(null);
     setQuery('');
   };
 
@@ -82,7 +80,7 @@ const SearchPage = () => {
             {query && <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2" aria-label="Effacer la recherche"><X size={16} className="text-muted-foreground" /></button>}
           </div>
           <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate('/map')} className="w-11 h-11 rounded-xl flex items-center justify-center bg-secondary text-foreground" aria-label="Voir la carte"><MapIcon size={18} /></motion.button>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowFilters(!showFilters)} className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${showFilters ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`} aria-label="Filtres"><SlidersHorizontal size={18} /></motion.button>
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowFilters(!showFilters)} className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${showFilters || hasFilters ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`} aria-label="Filtres"><SlidersHorizontal size={18} /></motion.button>
         </div>
 
         {inlineBudget !== null && <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1.5 text-xs font-semibold"><Wallet size={12} /> Budget détecté : ≤ {formatFCFA(inlineBudget)}</motion.div>}
@@ -91,7 +89,7 @@ const SearchPage = () => {
           {showFilters && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="overflow-hidden">
               <div className="pt-4 space-y-4">
-                <BudgetFilter min={budget[0]} max={budget[1]} bounds={BUDGET_BOUNDS} onChange={setBudget} />
+                <BudgetFilter value={budgetMax} onChange={setBudgetMax} />
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Quartier</p>
                   <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">{QUARTIERS.map((quartier) => <CategoryTag key={quartier} category={quartier} active={selectedQuartier === quartier} onClick={() => setSelectedQuartier(selectedQuartier === quartier ? null : quartier)} />)}</div>
@@ -119,7 +117,7 @@ const SearchPage = () => {
             ))}
           </AnimatePresence>
         </div>
-        {results.length === 0 && <div className="text-center py-20"><p className="text-4xl mb-3">🍽️</p><p className="text-muted-foreground font-medium">Aucun restaurant trouvé</p><p className="text-xs text-muted-foreground mt-1">Essaie d’élargir tes filtres</p></div>}
+        {results.length === 0 && <div className="text-center py-20"><p className="text-4xl mb-3">🍽️</p><p className="text-muted-foreground font-medium">Aucun restaurant trouvé</p><p className="text-xs text-muted-foreground mt-1">Essaie d'élargir tes filtres</p></div>}
       </div>
     </div>
   );

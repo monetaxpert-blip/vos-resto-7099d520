@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import OwnerReservations from '@/components/restaurant/OwnerReservations';
 import { formatFCFA } from '@/lib/format';
 
 const schema = z.object({
@@ -80,10 +81,10 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
       ...parsed.data,
       price_range: form.price_range,
       whatsapp_link: whatsappLink || null,
-      opening_hours: hours,
+      opening_hours: hours as unknown as Record<string, unknown>,
       categories: restaurant.categories,
     };
-    const { error } = await supabase.from('restaurants').update(payload).eq('id', restaurant.id);
+    const { error } = await supabase.from('restaurants').update(payload as never).eq('id', restaurant.id);
     setSaving(false);
     if (error) {
       toast.error('Sauvegarde impossible');
@@ -132,13 +133,18 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
 
   return (
     <Tabs defaultValue="profile" className="space-y-4">
-      <TabsList className="grid grid-cols-5 w-full h-auto bg-secondary rounded-2xl p-1">
+      <TabsList className="grid grid-cols-6 w-full h-auto bg-secondary rounded-2xl p-1">
         <TabsTrigger value="profile">Profil</TabsTrigger>
+        <TabsTrigger value="reservations">Résa</TabsTrigger>
         <TabsTrigger value="photos">Photos</TabsTrigger>
         <TabsTrigger value="menu">Menu</TabsTrigger>
         <TabsTrigger value="offers">Offres</TabsTrigger>
         <TabsTrigger value="stats">Stats</TabsTrigger>
       </TabsList>
+
+      <TabsContent value="reservations">
+        <OwnerReservations restaurantId={restaurant.id} />
+      </TabsContent>
 
       <TabsContent value="profile" className="space-y-4">
         <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
