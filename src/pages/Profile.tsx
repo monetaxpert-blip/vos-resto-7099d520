@@ -21,9 +21,8 @@ const Profile = () => {
     (user?.user_metadata?.display_name as string | undefined) ||
     user?.email?.split('@')[0] ||
     'Invité';
-  const avatar = user
-    ? ((user.user_metadata?.avatar_url as string | undefined) || avatarFor(displayName, (user.user_metadata?.gender as 'male' | 'female' | 'unspecified' | undefined) ?? 'unspecified'))
-    : null;
+  // Avatar rendered via AvatarUploader (handles fallback)
+  void avatarFor;
 
   const handleSignOut = async () => {
     await signOut();
