@@ -85,7 +85,7 @@ const mapRow = (r: RawRow): DBRestaurant => ({
   priceRange: r.price_range,
   cuisineType: r.cuisine_type,
   addressDetail: r.address_detail,
-  openingHours: r.opening_hours ?? undefined,
+  openingHours: (r.opening_hours as unknown as import('@/data/types').OpeningHours) ?? undefined,
   isActive: r.is_active,
   isFeatured: r.is_featured,
   isPinned: r.is_pinned,

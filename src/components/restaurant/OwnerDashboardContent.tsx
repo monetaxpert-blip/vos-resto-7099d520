@@ -80,10 +80,10 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
       ...parsed.data,
       price_range: form.price_range,
       whatsapp_link: whatsappLink || null,
-      opening_hours: hours,
+      opening_hours: hours as unknown as Record<string, unknown>,
       categories: restaurant.categories,
     };
-    const { error } = await supabase.from('restaurants').update(payload).eq('id', restaurant.id);
+    const { error } = await supabase.from('restaurants').update(payload as never).eq('id', restaurant.id);
     setSaving(false);
     if (error) {
       toast.error('Sauvegarde impossible');
