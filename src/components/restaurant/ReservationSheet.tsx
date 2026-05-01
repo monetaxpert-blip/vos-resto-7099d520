@@ -77,7 +77,7 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
             <div className="text-left">
               <p className="font-semibold text-sm">Réserver une table</p>
               <p className="text-xs text-muted-foreground">
-                {user ? 'Confirmation immédiate' : 'Connexion requise'}
+                {user ? 'Validation par le restaurant' : 'Connexion requise'}
               </p>
             </div>
           </div>
@@ -131,12 +131,15 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
               >
                 <Check size={36} className="text-primary-foreground" strokeWidth={3} />
               </motion.div>
-              <h3 className="text-lg font-bold">Réservation confirmée !</h3>
+              <h3 className="text-lg font-bold">Demande envoyée ✨</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 {format(date, 'EEEE d MMMM', { locale: fr })} à {time}
               </p>
               <p className="text-sm text-muted-foreground">
                 {guests} {guests > 1 ? 'personnes' : 'personne'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-3 max-w-xs">
+                Le restaurant va valider votre demande. Vous recevrez une notification dès la confirmation.
               </p>
             </motion.div>
           ) : (

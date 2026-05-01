@@ -77,7 +77,7 @@ export const useReservations = () => {
           reservation_date: input.date,
           reservation_time: input.time,
           guests: input.guests,
-          status: 'confirmed',
+          status: 'pending',
         })
         .select()
         .single();
