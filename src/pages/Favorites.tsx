@@ -31,7 +31,7 @@ const Favorites = () => {
     });
   };
 
-  const active = reservations.filter((r) => r.status !== 'cancelled');
+  const active = reservations.filter((r) => r.status === 'pending' || r.status === 'confirmed');
   const favRestos = favIds.map((id) => getRestaurantById(id)).filter(Boolean);
 
   if (!user) {
@@ -130,8 +130,12 @@ const Favorites = () => {
                             {r.guests} pers.
                           </span>
                         </div>
-                        <span className="inline-block mt-2 rounded-full bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">
-                          Confirmée
+                        <span className={`inline-block mt-2 rounded-full text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide ${
+                          r.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600' :
+                          r.status === 'pending' ? 'bg-orange-500/15 text-orange-600' :
+                          'bg-red-500/15 text-red-600'
+                        }`}>
+                          {r.status === 'confirmed' ? 'Confirmée ✓' : r.status === 'pending' ? 'En attente' : 'Annulée'}
                         </span>
                       </button>
                       <motion.button

@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
-import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield } from 'lucide-react';
+import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useReservations } from '@/hooks/useReservations';
+import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
 import InstallButton from '@/components/pwa/InstallButton';
+import AvatarUploader from '@/components/profile/AvatarUploader';
 import { avatarFor } from '@/lib/avatar';
 
 const Profile = () => {
@@ -13,7 +15,7 @@ const Profile = () => {
   const { user, signOut, loading, isAdmin, isRestaurantOwner } = useAuth();
   const { ids: favIds } = useFavorites();
   const { reservations } = useReservations();
-
+  const { unreadCount } = useNotifications();
   const activeRes = reservations.filter((r) => r.status !== 'cancelled').length;
   const displayName =
     (user?.user_metadata?.display_name as string | undefined) ||
@@ -34,7 +36,13 @@ const Profile = () => {
       <h1 className="text-2xl font-extrabold mb-6">Profil</h1>
 
       <div className="flex items-center gap-4 mb-8">
-        {avatar ? <img src={avatar} alt={displayName} className="w-16 h-16 rounded-full bg-primary/10 object-cover" /> : <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"><User size={28} className="text-primary" /></div>}
+        {user ? (
+          <AvatarUploader size={72} />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <User size={28} className="text-primary" />
+          </div>
+        )}
         <div className="min-w-0">
           <p className="font-bold text-lg truncate">{displayName}</p>
           <p className="text-sm text-muted-foreground truncate">
@@ -42,6 +50,27 @@ const Profile = () => {
           </p>
         </div>
       </div>
+
+      {user && (
+        <button
+          onClick={() => navigate('/notifications')}
+          className="w-full mb-4 rounded-2xl bg-card shadow-card p-4 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 relative">
+            <Bell size={18} className="text-primary" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-bold text-sm">Notifications</p>
+            <p className="text-xs text-muted-foreground">{unreadCount > 0 ? `${unreadCount} non lue(s)` : 'Tout est à jour'}</p>
+          </div>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </button>
+      )}
 
       {user && (
         <div className="grid grid-cols-2 gap-3 mb-6">
