@@ -13,7 +13,7 @@ type Step = 'role' | 'form';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { user, isAdmin, isRestaurantOwner } = useAuth();
+  const { user, isReady, isAdmin, isRestaurantOwner, intendedRole } = useAuth();
   const [step, setStep] = useState<Step>('role');
   const [role, setRole] = useState<Role>('client');
   const [mode, setMode] = useState<'signin' | 'signup'>('signup');
@@ -25,19 +25,29 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   const redirect = new URLSearchParams(window.location.search).get('redirect');
+
   useEffect(() => {
-    if (!user) return;
-    if (redirect) navigate(redirect, { replace: true });
-    else if (isAdmin) navigate('/admin', { replace: true });
-    else if (isRestaurantOwner || role === 'restaurant') navigate('/restaurant/onboarding', { replace: true });
-    else navigate('/', { replace: true });
-  }, [user, isAdmin, isRestaurantOwner, navigate, redirect, role]);
+    if (!isReady || !user) return;
+    if (redirect) {
+      navigate(redirect, { replace: true });
+      return;
+    }
+    if (isAdmin) {
+      navigate('/admin', { replace: true });
+      return;
+    }
+    if (isRestaurantOwner || intendedRole === 'restaurant') {
+      navigate('/restaurant/onboarding', { replace: true });
+      return;
+    }
+    navigate('/', { replace: true });
+  }, [user, isReady, isAdmin, isRestaurantOwner, intendedRole, navigate, redirect]);
 
   const lastSubmitRef = useRef<number>(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; // hard guard against double-submit
+    if (loading) return;
     const now = Date.now();
     if (now - lastSubmitRef.current < MIN_RETRY_MS) {
       toast.info('Patientez un instant avant de réessayer');
@@ -46,14 +56,14 @@ const Auth = () => {
     lastSubmitRef.current = now;
     setLoading(true);
     try {
+      const cleanEmail = email.trim();
       if (mode === 'signup') {
         const { avatarFor } = await import('@/lib/avatar');
-        const seed = displayName || email.split('@')[0];
-        const { error } = await supabase.auth.signUp({
-          email: email.trim(),
+        const seed = displayName || cleanEmail.split('@')[0];
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: cleanEmail,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
             data: {
               display_name: seed,
               first_name: displayName,
@@ -64,11 +74,24 @@ const Auth = () => {
             },
           },
         });
-        if (error) throw error;
-        toast.success(role === 'restaurant' ? 'Compte créé ! Configurons votre restaurant.' : 'Bienvenue 🎉');
+        if (signUpError) throw signUpError;
+
+        // Auto sign-in immediately (auto-confirm is enabled)
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+        if (signInError) {
+          toast.success('Compte créé. Connecte-toi maintenant.');
+          setMode('signin');
+        } else {
+          await supabase.auth.getSession();
+          toast.success(role === 'restaurant' ? 'Bienvenue ! Configurons votre restaurant.' : 'Bienvenue 🎉');
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) throw error;
+        await supabase.auth.getSession();
         toast.success('Bienvenue !');
       }
     } catch (err) {
@@ -78,18 +101,16 @@ const Auth = () => {
         const secs = raw.match(/(\d+)\s*seconds?/i)?.[1];
         toast.error(secs
           ? `Trop de tentatives. Réessayez dans ${secs}s.`
-          : 'Trop de tentatives, veuillez patienter quelques secondes.');
+          : 'Trop de tentatives, réessayez dans quelques secondes');
       } else if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
         toast.error('Email ou mot de passe incorrect');
       } else if (msg.includes('already registered') || msg.includes('user already')) {
-        toast.error('Cet email est déjà utilisé. Connexion en cours…');
+        toast.error('Cet email est déjà utilisé. Connexion…');
         setMode('signin');
-      } else if (msg.includes('email not confirmed')) {
-        toast.error('Email non confirmé. Vérifiez votre boîte de réception.');
       } else if (msg.includes('password') && msg.includes('6')) {
         toast.error('Le mot de passe doit faire au moins 6 caractères');
       } else {
-        toast.error(raw);
+        toast.error('Une erreur est survenue. Veuillez réessayer.');
       }
     } finally {
       setLoading(false);
