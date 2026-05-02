@@ -6,8 +6,10 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isReady: boolean;
   isAdmin: boolean;
   isRestaurantOwner: boolean;
+  intendedRole: 'client' | 'restaurant' | null;
   signOut: () => Promise<void>;
 }
 
@@ -17,6 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isRestaurantOwner, setIsRestaurantOwner] = useState(false);
 
@@ -46,7 +49,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session: existing } }) => {
       setSession(existing);
       setUser(existing?.user ?? null);
-      checkRoles(existing?.user?.id).finally(() => setLoading(false));
+      checkRoles(existing?.user?.id).finally(() => {
+        setLoading(false);
+        setIsReady(true);
+      });
     });
 
     return () => subscription.unsubscribe();
@@ -56,8 +62,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const intendedRole = (user?.user_metadata?.intended_role as 'client' | 'restaurant' | undefined) ?? null;
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isReady, isAdmin, isRestaurantOwner, intendedRole, signOut }}>
       {children}
     </AuthContext.Provider>
   );
