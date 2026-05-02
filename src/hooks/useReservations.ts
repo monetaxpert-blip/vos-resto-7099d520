@@ -82,7 +82,9 @@ export const useReservations = () => {
         .select()
         .single();
       if (error) {
-        if (error.code === '23505') throw new Error('Vous avez déjà une réservation à cet horaire.');
+        if (error.code === '23505') {
+          throw new Error('Vous avez déjà une demande en attente ou confirmée à cet horaire.');
+        }
         throw error;
       }
       return data;

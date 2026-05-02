@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Mail, Lock, ArrowLeft, Store, User as UserIcon, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+
+const MIN_RETRY_MS = 2000;
 
 type Role = 'client' | 'restaurant';
 type Step = 'role' | 'form';
@@ -31,15 +33,24 @@ const Auth = () => {
     else navigate('/', { replace: true });
   }, [user, isAdmin, isRestaurantOwner, navigate, redirect, role]);
 
+  const lastSubmitRef = useRef<number>(0);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // hard guard against double-submit
+    const now = Date.now();
+    if (now - lastSubmitRef.current < MIN_RETRY_MS) {
+      toast.info('Patientez un instant avant de réessayer');
+      return;
+    }
+    lastSubmitRef.current = now;
     setLoading(true);
     try {
       if (mode === 'signup') {
         const { avatarFor } = await import('@/lib/avatar');
         const seed = displayName || email.split('@')[0];
         const { error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
@@ -56,17 +67,30 @@ const Auth = () => {
         if (error) throw error;
         toast.success(role === 'restaurant' ? 'Compte créé ! Configurons votre restaurant.' : 'Bienvenue 🎉');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;
         toast.success('Bienvenue !');
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erreur';
-      if (msg.toLowerCase().includes('invalid login')) toast.error('Email ou mot de passe incorrect');
-      else if (msg.toLowerCase().includes('already registered')) {
-        toast.error('Cet email est déjà utilisé. Connectez-vous.');
+      const raw = err instanceof Error ? err.message : 'Erreur inconnue';
+      const msg = raw.toLowerCase();
+      if (msg.includes('rate limit') || msg.includes('only request this after') || msg.includes('too many')) {
+        const secs = raw.match(/(\d+)\s*seconds?/i)?.[1];
+        toast.error(secs
+          ? `Trop de tentatives. Réessayez dans ${secs}s.`
+          : 'Trop de tentatives, veuillez patienter quelques secondes.');
+      } else if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
+        toast.error('Email ou mot de passe incorrect');
+      } else if (msg.includes('already registered') || msg.includes('user already')) {
+        toast.error('Cet email est déjà utilisé. Connexion en cours…');
         setMode('signin');
-      } else toast.error(msg);
+      } else if (msg.includes('email not confirmed')) {
+        toast.error('Email non confirmé. Vérifiez votre boîte de réception.');
+      } else if (msg.includes('password') && msg.includes('6')) {
+        toast.error('Le mot de passe doit faire au moins 6 caractères');
+      } else {
+        toast.error(raw);
+      }
     } finally {
       setLoading(false);
     }
