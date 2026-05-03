@@ -22,10 +22,25 @@ import { track } from '@/lib/analytics';
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const restaurant = id ? getRestaurantById(id) : undefined;
+  const { isRestaurantOwner, isAdmin, isReady } = useAuth();
+  const { restaurant: dbRestaurant, loading: dbLoading } = useRestaurantById(id);
+  const { list: dbList } = useDBRestaurants();
+  const restaurant = dbRestaurant ?? (id ? getStaticRestaurantById(id) : undefined);
   const { isFavorite, toggle } = useFavorites();
   const { data: dbPhotos } = useRestaurantPhotos(restaurant?.id);
   const [activeImg, setActiveImg] = useState(0);
+
+  // Owner redirect: restaurant owners (non-admin) should not browse public details
+  useEffect(() => {
+    if (isReady && isRestaurantOwner && !isAdmin) {
+      navigate('/restaurant/dashboard', { replace: true });
+    }
+  }, [isReady, isRestaurantOwner, isAdmin, navigate]);
+
+  useEffect(() => {
+    console.log('[RESTAURANT DETAIL ID]', id);
+    console.log('[RESTAURANT DATA]', dbRestaurant);
+  }, [id, dbRestaurant]);
 
   const menu = useMemo(
     () => (restaurant ? getMenuForRestaurant(restaurant.id, restaurant.categories) : []),
