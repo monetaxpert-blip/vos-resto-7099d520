@@ -43,37 +43,37 @@ const RestaurantOnboarding = () => {
   };
 
   const createRestaurant = async () => {
+    if (submitting) return;
     if (!user || !form.name.trim()) return toast.error('Le nom est requis');
     setSubmitting(true);
-    const id = crypto.randomUUID();
-    const payload = {
-      id,
-      name: form.name.trim(),
-      address: form.address.trim() || null,
-      address_detail: form.address.trim() || null,
-      quartier: form.quartier || null,
-      city: 'Dakar',
-      phone: form.phone.trim() || null,
-      categories: [form.categories],
-      cuisine_type: form.categories,
-      description: form.description.trim() || null,
-      whatsapp_number: form.phone.trim() || null,
-      whatsapp_link: buildWhatsAppLink(form.phone, form.name),
-    };
-    const { error: createError } = await supabase.from('restaurants').insert(payload).select().single();
-    if (createError) {
-      console.error('[SUPABASE INSERT restaurants]', createError);
+    try {
+      const { data, error } = await supabase.rpc('create_restaurant_with_owner', {
+        p_name: form.name.trim(),
+        p_description: form.description.trim() || null,
+        p_address: form.address.trim() || null,
+        p_quartier: form.quartier || null,
+        p_phone: form.phone.trim() || null,
+        p_cuisine_type: form.categories || null,
+        p_average_price: null,
+      });
+      if (error) {
+        console.error('[RPC create_restaurant_with_owner]', error);
+        toast.error(error.message);
+        return;
+      }
+      const result = data as { success?: boolean; restaurant_id?: string } | null;
+      if (!result?.success) {
+        toast.error('Création échouée');
+        return;
+      }
+      toast.success('🎉 Restaurant créé avec succès !');
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error('[CREATE RESTAURANT]', err);
+      toast.error(err?.message || 'Erreur lors de la création');
+    } finally {
       setSubmitting(false);
-      return toast.error(createError.message);
     }
-    const { error: linkError } = await supabase.from('restaurant_owners').insert({ user_id: user.id, restaurant_id: id, restaurant_name: form.name.trim(), is_owned_listing: true });
-    setSubmitting(false);
-    if (linkError) {
-      console.error('[SUPABASE INSERT restaurant_owners]', linkError);
-      return toast.error(linkError.message);
-    }
-    toast.success('Restaurant créé avec essai gratuit');
-    navigate('/dashboard');
   };
 
   return (

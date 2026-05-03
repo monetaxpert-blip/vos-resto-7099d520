@@ -583,6 +583,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_restaurant_with_owner: {
+        Args: {
+          p_address?: string
+          p_average_price?: number
+          p_cuisine_type?: string
+          p_description?: string
+          p_name: string
+          p_phone?: string
+          p_quartier?: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
