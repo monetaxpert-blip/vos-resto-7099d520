@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { buildWhatsAppLink, CUISINE_OPTIONS, QUARTIER_OPTIONS } from '@/lib/restaurant';
+import { CUISINE_OPTIONS, QUARTIER_OPTIONS } from '@/lib/restaurant';
 
 type Mode = 'choose' | 'claim' | 'create';
 
