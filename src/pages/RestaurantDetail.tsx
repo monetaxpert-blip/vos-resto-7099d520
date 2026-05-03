@@ -80,6 +80,13 @@ const RestaurantDetail = () => {
 
 
   if (!restaurant) {
+    if (dbLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <p className="text-muted-foreground text-sm">Chargement...</p>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -92,7 +99,23 @@ const RestaurantDetail = () => {
     );
   }
 
-  const similar = getSimilarRestaurants(restaurant, 4);
+  // Similar: prefer DB siblings (same quartier/categories), fallback to static
+  const similar = (() => {
+    const pool = dbList.filter((r) => r.id !== restaurant.id);
+    const scored = pool
+      .map((r) => {
+        let score = 0;
+        if (r.quartier && r.quartier === restaurant.quartier) score += 3;
+        const shared = r.categories.filter((c) => restaurant.categories.includes(c));
+        score += shared.length * 2;
+        return { r, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map((x) => x.r);
+    return scored.length > 0 ? scored : getStaticSimilar(restaurant, 4);
+  })();
   const fav = isFavorite(restaurant.id);
 
   return (
