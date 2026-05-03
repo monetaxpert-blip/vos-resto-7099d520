@@ -19,6 +19,7 @@ const RestaurantOnboarding = () => {
   const [mode, setMode] = useState<Mode>('choose');
   const [query, setQuery] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', address: '', quartier: '', phone: '', categories: 'Sénégalais', description: '' });
 
   if (!authLoading && !user) {
