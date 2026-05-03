@@ -128,20 +128,24 @@ const RestaurantOnboarding = () => {
       )}
 
       {mode === 'create' && (
-        <div className="space-y-3">
+        <fieldset disabled={submitting} className="space-y-3 disabled:opacity-70">
           <Input placeholder="Nom du restaurant *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <Input placeholder="Adresse" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           <Input placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <select value={form.quartier} onChange={(e) => setForm({ ...form, quartier: e.target.value })} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+          <select value={form.quartier} onChange={(e) => setForm({ ...form, quartier: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
             <option value="">Quartier</option>
             {QUARTIER_OPTIONS.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
-          <select value={form.categories} onChange={(e) => setForm({ ...form, categories: e.target.value })} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+          <select value={form.categories} onChange={(e) => setForm({ ...form, categories: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
             {CUISINE_OPTIONS.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
-          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm" />
-          <Button onClick={createRestaurant} disabled={submitting} className="w-full font-bold">{submitting && <Loader2 size={16} className="animate-spin" />}Créer mon restaurant</Button>
-        </div>
+          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+          <Button type="button" onClick={createRestaurant} disabled={submitting} className="w-full font-bold gap-2">
+            {submitting && <Loader2 size={16} className="animate-spin" />}
+            {submitting ? 'Création en cours...' : 'Créer mon restaurant'}
+          </Button>
+          {error && <p className="text-sm text-destructive text-center">{error}</p>}
+        </fieldset>
       )}
     </div>
   );
