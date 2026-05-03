@@ -60,14 +60,18 @@ const RestaurantOnboarding = () => {
       whatsapp_number: form.phone.trim() || null,
       whatsapp_link: buildWhatsAppLink(form.phone, form.name),
     };
-    const created = await supabase.from('restaurants').insert(payload);
-    if (created.error) {
+    const { error: createError } = await supabase.from('restaurants').insert(payload).select().single();
+    if (createError) {
+      console.error('[SUPABASE INSERT restaurants]', createError);
       setSubmitting(false);
-      return toast.error('Création impossible');
+      return toast.error(createError.message);
     }
-    const linked = await supabase.from('restaurant_owners').insert({ user_id: user.id, restaurant_id: id, restaurant_name: form.name.trim(), is_owned_listing: true });
+    const { error: linkError } = await supabase.from('restaurant_owners').insert({ user_id: user.id, restaurant_id: id, restaurant_name: form.name.trim(), is_owned_listing: true });
     setSubmitting(false);
-    if (linked.error) return toast.error('Liaison impossible');
+    if (linkError) {
+      console.error('[SUPABASE INSERT restaurant_owners]', linkError);
+      return toast.error(linkError.message);
+    }
     toast.success('Restaurant créé avec essai gratuit');
     navigate('/dashboard');
   };
