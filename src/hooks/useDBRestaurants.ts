@@ -114,7 +114,7 @@ export function useDBRestaurants(opts: { adminMode?: boolean } = {}) {
   useEffect(() => {
     refresh();
     const channel = supabase
-      .channel(`restaurants-changes-${opts.adminMode ? 'admin' : 'public'}`)
+      .channel(`restaurants-changes-${opts.adminMode ? 'admin' : 'public'}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurants' }, refresh)
       .subscribe();
     return () => {
