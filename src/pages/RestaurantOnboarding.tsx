@@ -10,14 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CUISINE_OPTIONS, QUARTIER_OPTIONS } from '@/lib/restaurant';
 
-type Mode = 'choose' | 'claim' | 'create';
+type Mode = 'create';
 
 const RestaurantOnboarding = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { list } = useDBRestaurants();
-  const [mode, setMode] = useState<Mode>('choose');
-  const [query, setQuery] = useState('');
+  const { list: _list } = useDBRestaurants();
+  const [mode] = useState<Mode>('create');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', address: '', quartier: '', phone: '', categories: 'Sénégalais', description: '' });
