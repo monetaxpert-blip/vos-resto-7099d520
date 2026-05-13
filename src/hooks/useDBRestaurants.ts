@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Restaurant } from '@/data/types';
 
@@ -94,39 +94,78 @@ const mapRow = (r: RawRow): DBRestaurant => ({
   adminPlan: r.admin_plan,
 });
 
+/**
+ * List restaurants. Manual fetch only (no realtime) — call refresh() after mutations.
+ */
 export function useDBRestaurants(opts: { adminMode?: boolean } = {}) {
   const [list, setList] = useState<DBRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const adminMode = !!opts.adminMode;
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from('restaurants').select('*');
-    if (!opts.adminMode) query = query.eq('is_active', true);
-    const { data } = await query
-      .order('is_pinned', { ascending: false })
-      .order('is_featured', { ascending: false })
-      .order('display_order', { ascending: false })
-      .order('rating_count', { ascending: false });
-    setList((data ?? []).map((row) => mapRow(row as RawRow)));
-    setLoading(false);
-  };
+    setError(null);
+    try {
+      let query = supabase.from('restaurants').select('*');
+      if (!adminMode) query = query.eq('is_active', true);
+      const { data, error: qErr } = await query
+        .order('is_pinned', { ascending: false })
+        .order('is_featured', { ascending: false })
+        .order('display_order', { ascending: false })
+        .order('rating_count', { ascending: false });
+      if (qErr) throw qErr;
+      setList((data ?? []).map((row) => mapRow(row as RawRow)));
+    } catch (err: any) {
+      console.error('[useDBRestaurants]', err);
+      setError(err?.message ?? 'Erreur de chargement');
+    } finally {
+      setLoading(false);
+    }
+  }, [adminMode]);
 
   useEffect(() => {
     refresh();
-    const channel = supabase
-      .channel(`restaurants-changes-${opts.adminMode ? 'admin' : 'public'}-${Math.random().toString(36).slice(2)}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurants' }, refresh)
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [opts.adminMode]);
+  }, [refresh]);
 
-  return { list, loading, refresh };
+  return { list, loading, error, refresh };
 }
 
+/**
+ * Single-restaurant fetch by id. Targeted query, no list dependency.
+ */
 export function useRestaurantById(id?: string, opts: { adminMode?: boolean } = {}) {
-  const { list, loading, refresh } = useDBRestaurants(opts);
-  const restaurant = useMemo(() => list.find((item) => item.id === id), [id, list]);
-  return { restaurant, list, loading, refresh };
+  const [restaurant, setRestaurant] = useState<DBRestaurant | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const adminMode = !!opts.adminMode;
+
+  const fetchOne = useCallback(async () => {
+    if (!id) {
+      setRestaurant(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      let q = supabase.from('restaurants').select('*').eq('id', id);
+      if (!adminMode) q = q.eq('is_active', true);
+      const { data, error: qErr } = await q.maybeSingle();
+      if (qErr) throw qErr;
+      setRestaurant(data ? mapRow(data as RawRow) : null);
+    } catch (err: any) {
+      console.error('[useRestaurantById]', err);
+      setError(err?.message ?? 'Erreur de chargement');
+      setRestaurant(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, adminMode]);
+
+  useEffect(() => {
+    fetchOne();
+  }, [fetchOne]);
+
+  return { restaurant, loading, error, retry: fetchOne };
 }
