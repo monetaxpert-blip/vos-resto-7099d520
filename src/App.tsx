@@ -23,6 +23,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import NotFound from "./pages/NotFound";
 import SplashScreen from "@/components/pwa/SplashScreen";
 import OwnerGuard from "@/components/admin/OwnerGuard";
+import RoleRouter from "@/components/admin/RoleRouter";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ErrorBoundary>
+          <RoleRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<SearchPage />} />
@@ -55,6 +59,8 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
+          </RoleRouter>
+          </ErrorBoundary>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
