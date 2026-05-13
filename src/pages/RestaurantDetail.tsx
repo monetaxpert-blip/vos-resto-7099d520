@@ -123,7 +123,7 @@ const RestaurantDetail = () => {
       .sort((a, b) => b.score - a.score)
       .slice(0, 4)
       .map((x) => x.r);
-    return scored.length > 0 ? scored : getStaticSimilar(restaurant, 4);
+    return scored;
   })();
   const fav = isFavorite(restaurant.id);
 
