@@ -1,8 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon } from 'lucide-react';
-import { getRestaurantById as getStaticRestaurantById, getSimilarRestaurants as getStaticSimilar } from '@/data/queries';
+import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon, Loader2 } from 'lucide-react';
 import { useRestaurantById, useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuForRestaurant } from '@/data/menus';
@@ -23,9 +22,8 @@ const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isRestaurantOwner, isAdmin, isReady } = useAuth();
-  const { restaurant: dbRestaurant, loading: dbLoading } = useRestaurantById(id);
+  const { restaurant, loading, error, retry } = useRestaurantById(id);
   const { list: dbList } = useDBRestaurants();
-  const restaurant = dbRestaurant ?? (id ? getStaticRestaurantById(id) : undefined);
   const { isFavorite, toggle } = useFavorites();
   const { data: dbPhotos } = useRestaurantPhotos(restaurant?.id);
   const [activeImg, setActiveImg] = useState(0);
@@ -36,11 +34,6 @@ const RestaurantDetail = () => {
       navigate('/restaurant/dashboard', { replace: true });
     }
   }, [isReady, isRestaurantOwner, isAdmin, navigate]);
-
-  useEffect(() => {
-    console.log('[RESTAURANT DETAIL ID]', id);
-    console.log('[RESTAURANT DATA]', dbRestaurant);
-  }, [id, dbRestaurant]);
 
   const menu = useMemo(
     () => (restaurant ? getMenuForRestaurant(restaurant.id, restaurant.categories) : []),
@@ -78,20 +71,36 @@ const RestaurantDetail = () => {
     if (restaurant?.id) track('restaurant_view', { restaurantId: restaurant.id });
   }, [restaurant?.id]);
 
-
-  if (!restaurant) {
-    if (dbLoading) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <p className="text-muted-foreground text-sm">Chargement...</p>
-        </div>
-      );
-    }
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <p className="text-muted-foreground">Restaurant introuvable</p>
-          <button onClick={() => navigate('/')} className="mt-4 text-primary font-medium">
+        <Loader2 className="animate-spin text-primary" size={28} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-6">
+        <div className="text-center max-w-sm">
+          <p className="text-base font-semibold mb-2">Impossible de charger le restaurant</p>
+          <p className="text-sm text-muted-foreground mb-5">{error}</p>
+          <div className="flex gap-2 justify-center">
+            <button onClick={retry} className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold">Réessayer</button>
+            <button onClick={() => navigate('/')} className="rounded-xl bg-secondary text-secondary-foreground px-4 py-2 text-sm font-semibold">Accueil</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!restaurant) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-6">
+        <div className="text-center max-w-sm">
+          <p className="text-base font-semibold mb-2">Restaurant indisponible</p>
+          <p className="text-sm text-muted-foreground mb-5">Cette fiche n'existe pas ou n'est plus active.</p>
+          <button onClick={() => navigate('/')} className="rounded-xl bg-primary text-primary-foreground px-5 py-2.5 text-sm font-semibold">
             Retour à l'accueil
           </button>
         </div>
