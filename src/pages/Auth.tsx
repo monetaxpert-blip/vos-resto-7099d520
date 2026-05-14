@@ -36,7 +36,13 @@ const Auth = () => {
       navigate('/admin', { replace: true });
       return;
     }
-    if (isRestaurantOwner || intendedRole === 'restaurant') {
+    // Existing owner → straight to dashboard. Only fresh signups with intended_role='restaurant'
+    // and no ownership row yet should land on onboarding.
+    if (isRestaurantOwner) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    if (intendedRole === 'restaurant') {
       navigate('/restaurant/onboarding', { replace: true });
       return;
     }
