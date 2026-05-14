@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Restaurant } from '@/data/types';
 
@@ -94,78 +95,73 @@ const mapRow = (r: RawRow): DBRestaurant => ({
   adminPlan: r.admin_plan,
 });
 
+const fetchRestaurants = async (adminMode: boolean): Promise<DBRestaurant[]> => {
+  let query = supabase.from('restaurants').select('*');
+  if (!adminMode) query = query.eq('is_active', true);
+  const { data, error } = await query
+    .order('is_pinned', { ascending: false })
+    .order('is_featured', { ascending: false })
+    .order('display_order', { ascending: false })
+    .order('rating_count', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => mapRow(row as RawRow));
+};
+
+const fetchRestaurantById = async (id: string, adminMode: boolean): Promise<DBRestaurant | null> => {
+  let q = supabase.from('restaurants').select('*').eq('id', id);
+  if (!adminMode) q = q.eq('is_active', true);
+  const { data, error } = await q.maybeSingle();
+  if (error) throw error;
+  return data ? mapRow(data as RawRow) : null;
+};
+
+export const restaurantsKeys = {
+  all: ['restaurants'] as const,
+  list: (adminMode: boolean) => ['restaurants', 'list', { adminMode }] as const,
+  detail: (id: string | undefined, adminMode: boolean) => ['restaurants', 'detail', id, { adminMode }] as const,
+};
+
 /**
- * List restaurants. Manual fetch only (no realtime) — call refresh() after mutations.
+ * List restaurants. Backed by React Query (cache, retry, dedup).
+ * Public API kept stable: { list, loading, error, refresh }.
  */
 export function useDBRestaurants(opts: { adminMode?: boolean } = {}) {
-  const [list, setList] = useState<DBRestaurant[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const adminMode = !!opts.adminMode;
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: restaurantsKeys.list(adminMode),
+    queryFn: () => fetchRestaurants(adminMode),
+  });
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      let query = supabase.from('restaurants').select('*');
-      if (!adminMode) query = query.eq('is_active', true);
-      const { data, error: qErr } = await query
-        .order('is_pinned', { ascending: false })
-        .order('is_featured', { ascending: false })
-        .order('display_order', { ascending: false })
-        .order('rating_count', { ascending: false });
-      if (qErr) throw qErr;
-      setList((data ?? []).map((row) => mapRow(row as RawRow)));
-    } catch (err: any) {
-      console.error('[useDBRestaurants]', err);
-      setError(err?.message ?? 'Erreur de chargement');
-    } finally {
-      setLoading(false);
-    }
-  }, [adminMode]);
+    await qc.invalidateQueries({ queryKey: restaurantsKeys.list(adminMode) });
+  }, [qc, adminMode]);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  return { list, loading, error, refresh };
+  const list = useMemo(() => query.data ?? [], [query.data]);
+  return {
+    list,
+    loading: query.isLoading,
+    error: query.error ? (query.error as Error).message : null,
+    refresh,
+  };
 }
 
 /**
- * Single-restaurant fetch by id. Targeted query, no list dependency.
+ * Single restaurant by id. Targeted query, independent cache entry.
+ * Public API kept stable: { restaurant, loading, error, retry }.
  */
 export function useRestaurantById(id?: string, opts: { adminMode?: boolean } = {}) {
-  const [restaurant, setRestaurant] = useState<DBRestaurant | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const adminMode = !!opts.adminMode;
+  const query = useQuery({
+    queryKey: restaurantsKeys.detail(id, adminMode),
+    queryFn: () => fetchRestaurantById(id as string, adminMode),
+    enabled: !!id,
+  });
 
-  const fetchOne = useCallback(async () => {
-    if (!id) {
-      setRestaurant(null);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      let q = supabase.from('restaurants').select('*').eq('id', id);
-      if (!adminMode) q = q.eq('is_active', true);
-      const { data, error: qErr } = await q.maybeSingle();
-      if (qErr) throw qErr;
-      setRestaurant(data ? mapRow(data as RawRow) : null);
-    } catch (err: any) {
-      console.error('[useRestaurantById]', err);
-      setError(err?.message ?? 'Erreur de chargement');
-      setRestaurant(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [id, adminMode]);
-
-  useEffect(() => {
-    fetchOne();
-  }, [fetchOne]);
-
-  return { restaurant, loading, error, retry: fetchOne };
+  return {
+    restaurant: query.data ?? null,
+    loading: query.isLoading,
+    error: query.error ? (query.error as Error).message : null,
+    retry: () => query.refetch(),
+  };
 }

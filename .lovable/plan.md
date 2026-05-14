@@ -1,46 +1,82 @@
-## Vos Resto — Stabilization & Demo-Ready Plan
+# Vos Resto — Plan Production-Ready (Stabilité d'abord)
 
-This is a large, multi-area request (13 phases). Rather than touching everything blindly and risking breakage, I propose to ship it in **focused, verifiable batches**. Each batch is independently testable so we never regress between sessions.
-
-### Batch A — Stability & "Restaurant introuvable" (PHASE 1, 2, 11)
-- Remove non-critical realtime in `useDBRestaurants` → manual fetch + `refresh()` exposed.
-- New dedicated hook `useRestaurantById(id)` doing a **single targeted query** (`.eq('id', id).maybeSingle()`) with `loading` / `error` / `retry` — no list dependency.
-- `RestaurantDetail.tsx`: drop static fallbacks (`getStaticRestaurantById`, `getStaticSimilar`), add proper Loading skeleton + "Restaurant indisponible" empty state.
-- Add global `<ErrorBoundary>` in `App.tsx`.
-- Audit `useEffect` deps in Home/Search/Detail/Dashboard/Onboarding for loops.
-
-### Batch B — Owner isolation (PHASE 8)
-- Promote `OwnerGuard` logic into a top-level `RoleRouter` that, when `isRestaurantOwner && !isAdmin`, force-redirects `/`, `/search`, `/favorites`, `/restaurant/:id` → `/restaurant/dashboard`.
-- Remove "Réclamer un restaurant" mode from `RestaurantOnboarding`.
-
-### Batch C — Search UX + Budget filter (PHASE 3, 4)
-- Rebuild Search filter bar: sticky, proper `z-index`, spacing, no overlap with cards.
-- Add Budget filter (`<3000`, `3–7k`, `7–15k`, `15k+`) wired to `average_price` on Home, Search, "Around me".
-
-### Batch D — Geolocation & "Autour de moi" & GPS premium (PHASE 5, 7, 13)
-- New `useGeolocation` hook (`enableHighAccuracy`, timeout 10s, refusal handling).
-- "📍 Autour de moi" button + Haversine sort + distance labels ("1.2 km", "500 m").
-- Onboarding: remove manual lat/lng inputs (already absent in form, but ensure DB-level `latitude`/`longitude` are set via "Use my position" + reverse geocoding using free Nominatim).
-- Premium route button already exists (`RouteButton.tsx`) — polish info line + ensure it works without coords (search-by-name fallback already in place).
-- Map view: ensure user position marker + auto-zoom + smooth route line.
-
-### Batch E — Simplified onboarding (PHASE 6)
-- Multi-step guided wizard: Account → Restaurant basics → Logo/banner/photos → Menu → Hours → WhatsApp → Categories → Avg price.
-
-### Batch F — Order system (PHASE 9)
-- Migration: `orders`, `order_items` tables with proper RLS (client owns their orders, restaurant owner sees orders for their restaurants).
-- Client cart context, "Add to cart", "Order via WhatsApp" + order record.
-- Owner dashboard: orders list with accept/refuse/preparing/ready/delivered statuses.
-
-### Batch G — Auth hardening (PHASE 10)
-- Anti double-submit guards, retry on transient signup errors, real toast messages, auto-login confirmed.
+## Principe directeur
+Aucune nouvelle feature tant que l'architecture n'est pas solide. On livre par **lots atomiques testables**, chacun vérifié avant le suivant. Pas de hack, pas de patch local — refactor à la racine.
 
 ---
 
-### Why batches
-Phases 6, 9, 13 alone each represent multi-file, schema-touching features (~10+ files each). Cramming all 13 into one response risks introducing the exact bugs you're asking me to fix. Each batch above is ~2–4 files plus optional migration, fully testable, and won't break existing flows.
+## LOT 1 — Fondations stabilité (à faire MAINTENANT)
+Objectif : zéro crash, zéro écran blanc, états cohérents partout.
 
-### My proposal
-**Start with Batch A + B + the realtime removal** in this turn — these are the actual blockers ("écran blanc", "Restaurant introuvable", owners seeing public pages, React crashes). Then we ship C → G in subsequent turns.
+**Couche données centralisée**
+- Créer `src/lib/queryClient.ts` avec retry (2x, backoff), staleTime 30s, timeout 10s
+- Migrer `useDBRestaurants` + `useRestaurantById` vers React Query (`useQuery`) → cache, retry, dedup automatiques
+- Idem pour `useRestaurantMenu`, `useRestaurantPhotos`, `useRestaurantReviews`, `useFavorites`, `useNotifications`, `useReservations`, `useOwnerReservations`, `useRestaurantStats`, `useRestaurantOffers`, `useOwnership`
+- Supprimer tout `setState` manuel + `useEffect` de fetch dans les hooks
 
-If you confirm, I'll execute Batch A + B immediately. Otherwise tell me which batch to prioritize (e.g. "skip to orders" or "do GPS premium first") and I'll reorder.
+**UI states standardisés**
+- `src/components/ui/QueryState.tsx` : composant `<QueryState loading error empty>` réutilisable (skeleton, message d'erreur + retry, empty state)
+- Appliquer sur Index, Search, RestaurantDetail, Favorites, Dashboard, Admin*
+
+**Erreurs visibles**
+- ErrorBoundary déjà en place → ajouter logging structuré (`console.error('[scope]', err)`) + bouton retry
+- Toast d'erreur Supabase systématique (jamais d'erreur silencieuse)
+
+**Nettoyage**
+- Supprimer `src/data/restaurants.ts` (statique) si plus utilisé après migration
+- Supprimer realtime restant non critique
+- Auditer tous les `useEffect` à dépendances suspectes (boucles, fetch non-mémoïsés)
+
+## LOT 2 — RBAC durcissement
+- Audit `RoleRouter` : couvrir toutes les routes, gérer cas `loading` proprement (éviter flash)
+- `OwnerGuard` + nouveau `ClientGuard` (bloque owners sur routes client)
+- Vérifier RLS Supabase via linter, corriger warnings
+- Tests manuels matrice : client / owner / admin × chaque route
+
+## LOT 3 — Onboarding restaurateur (Wizard + autosave)
+- Refacto `RestaurantOnboarding` → wizard 5 étapes : Infos → Localisation → Menus → Photos → Preview
+- Persistance brouillon : `localStorage` clé `onboarding-draft-{userId}` à chaque changement
+- Reprise automatique au retour
+- Validation Zod par étape, navigation bloquée tant qu'invalide
+- Publication finale via RPC existante `create_restaurant_with_owner` étendue (logo, banner, hours)
+
+## LOT 4 — Recherche & filtres propres
+- Sticky filter bar avec `z-index` correct, pas d'overlap
+- Filtres : quartier, cuisine, budget, note, proximité (proximité = lot 6)
+- Mobile-first, scroll clean
+- Composant `BudgetFilter` déjà existant → intégrer
+
+## LOT 5 — Commandes (orders)
+- Migration : `orders`, `order_items` + RLS (client voit ses commandes, owner voit celles de ses restos)
+- Cart context client + checkout
+- Dashboard owner : liste + statuts (pending → accepted → preparing → ready → delivered / refused)
+- Notification trigger sur nouvelle commande
+
+## LOT 6 — GPS & cartes (après stabilité)
+- `useGeolocation` propre, "Autour de moi", distances Haversine, fallback safe
+
+## LOT 7 — Performance
+- Lazy loading routes (`React.lazy`), images (`loading="lazy"`), pagination listes longues, SEO/meta
+
+## LOT 8 — Sécurité finale
+- Validation Zod systématique sur tous les forms, rate limiting RPC, audit RLS final, upload sécurisé (taille/type)
+
+---
+
+## Détails techniques clés
+
+**Pourquoi React Query partout**
+- Retry + backoff natifs → règle "fetch instables" + "loading infinis"
+- Cache + dedup → règle "états incohérents" + perfs
+- `isLoading` / `isError` / `data` standardisés → règle "loading states propres"
+- `invalidateQueries` après mutation → règle "données cohérentes" sans realtime
+
+**Pourquoi pas tout d'un coup**
+Lot 1 seul touche ~15 fichiers (hooks + pages). Tout livrer d'un bloc = exactement le risque que tu veux éviter. Chaque lot est indépendamment testable et déployable.
+
+---
+
+## Démarrage proposé
+**Lot 1 maintenant** (fondations React Query + QueryState + nettoyage hooks). C'est le socle de tout le reste — sans ça, les lots suivants resteraient fragiles.
+
+Confirme et je démarre le Lot 1, ou indique si tu veux réordonner (ex: "lot 3 d'abord car onboarding bloque mes restaurateurs pilotes").
