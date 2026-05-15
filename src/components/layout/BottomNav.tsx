@@ -19,10 +19,12 @@ const BottomNav = memo(
     const location = useLocation();
     const { isAdmin, isRestaurantOwner } = useAuth();
 
+    // Restaurant owners (non-admin) are isolated: only dashboard + profile.
+    // Admins see full nav + admin shortcut.
     const tabs = isAdmin
       ? [...baseTabs.slice(0, 3), { path: '/admin', icon: LayoutDashboard, label: 'Admin' }, baseTabs[3]]
       : isRestaurantOwner
-        ? [...baseTabs.slice(0, 3), { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }, baseTabs[3]]
+        ? [{ path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }, baseTabs[3]]
         : baseTabs;
 
     if (HIDDEN_ROUTES.includes(location.pathname)) return null;
