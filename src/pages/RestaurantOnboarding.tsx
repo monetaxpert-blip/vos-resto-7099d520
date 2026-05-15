@@ -6,14 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CUISINE_OPTIONS, QUARTIER_OPTIONS } from '@/lib/restaurant';
+import { CITY_OPTIONS, CUISINE_OPTIONS, QUARTIER_OPTIONS } from '@/lib/restaurant';
 
 const RestaurantOnboarding = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', address: '', quartier: '', phone: '', categories: 'Sénégalais', description: '' });
+  const [form, setForm] = useState({ name: '', address: '', city: 'Dakar', quartier: '', phone: '', categories: 'Sénégalais', description: '' });
 
   if (!authLoading && !user) {
     navigate('/auth?redirect=/restaurant/onboarding');
