@@ -53,6 +53,14 @@ const RestaurantOnboarding = () => {
       if (!result?.success) {
         throw new Error(result?.error || 'Création échouée');
       }
+      // Update city if non-default (RPC defaults to 'Dakar')
+      if (result.restaurant_id && form.city && form.city !== 'Dakar') {
+        const { error: cityErr } = await supabase
+          .from('restaurants')
+          .update({ city: form.city })
+          .eq('id', result.restaurant_id);
+        if (cityErr) console.warn('[CITY UPDATE]', cityErr);
+      }
       toast.success('🎉 Restaurant créé !');
       navigate('/dashboard');
     } catch (err: any) {
