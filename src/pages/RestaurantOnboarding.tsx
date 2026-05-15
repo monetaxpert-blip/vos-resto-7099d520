@@ -6,14 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CUISINE_OPTIONS, QUARTIER_OPTIONS } from '@/lib/restaurant';
+import { CITY_OPTIONS, CUISINE_OPTIONS, QUARTIER_OPTIONS } from '@/lib/restaurant';
 
 const RestaurantOnboarding = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', address: '', quartier: '', phone: '', categories: 'Sénégalais', description: '' });
+  const [form, setForm] = useState({ name: '', address: '', city: 'Dakar', quartier: '', phone: '', categories: 'Sénégalais', description: '' });
 
   if (!authLoading && !user) {
     navigate('/auth?redirect=/restaurant/onboarding');
@@ -53,6 +53,14 @@ const RestaurantOnboarding = () => {
       if (!result?.success) {
         throw new Error(result?.error || 'Création échouée');
       }
+      // Update city if non-default (RPC defaults to 'Dakar')
+      if (result.restaurant_id && form.city && form.city !== 'Dakar') {
+        const { error: cityErr } = await supabase
+          .from('restaurants')
+          .update({ city: form.city })
+          .eq('id', result.restaurant_id);
+        if (cityErr) console.warn('[CITY UPDATE]', cityErr);
+      }
       toast.success('🎉 Restaurant créé !');
       navigate('/dashboard');
     } catch (err: any) {
@@ -77,8 +85,11 @@ const RestaurantOnboarding = () => {
         <Input placeholder="Nom du restaurant *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <Input placeholder="Adresse" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
         <Input placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+          {CITY_OPTIONS.map((item) => <option key={item} value={item}>{item}</option>)}
+        </select>
         <select value={form.quartier} onChange={(e) => setForm({ ...form, quartier: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-          <option value="">Quartier</option>
+          <option value="">Quartier (optionnel)</option>
           {QUARTIER_OPTIONS.map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
         <select value={form.categories} onChange={(e) => setForm({ ...form, categories: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">

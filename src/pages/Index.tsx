@@ -24,7 +24,7 @@ const HeroSection = memo(() => {
       </motion.div>
       <motion.div style={{ opacity }} className="relative z-10 flex flex-col items-center justify-end h-full pb-10 px-6">
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }} className="text-4xl font-extrabold text-white text-center tracking-tight mb-2">Vos Resto</motion.h1>
-        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="text-white/80 text-sm text-center mb-6 max-w-xs">Marketplace restaurants à Dakar : menus, réservations, itinéraires et offres.</motion.p>
+        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="text-white/80 text-sm text-center mb-6 max-w-xs">La marketplace des restaurants au Sénégal : menus, réservations, itinéraires et offres.</motion.p>
         <motion.button initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5, type: 'spring' }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/search')} className="flex items-center gap-3 w-full max-w-sm glass rounded-2xl px-5 py-3.5 text-left text-sm text-white/70 shadow-xl"><Search size={18} /><span>Rechercher un restaurant...</span></motion.button>
       </motion.div>
     </div>

@@ -43,6 +43,28 @@ export const QUARTIER_OPTIONS = [
   'Ouakam',
 ] as const;
 
+// Villes couvertes par la plateforme — pensé national, extensible.
+export const CITY_OPTIONS = [
+  'Dakar',
+  'Thiès',
+  'Saint-Louis',
+  'Mbour',
+  'Saly',
+  'Kaolack',
+  'Ziguinchor',
+  'Touba',
+  'Diourbel',
+  'Rufisque',
+  'Tambacounda',
+  'Louga',
+  'Fatick',
+  'Kolda',
+  'Matam',
+  'Kédougou',
+  'Sédhiou',
+  'Kaffrine',
+] as const;
+
 export const PRICE_RANGE_OPTIONS = ['Économique', 'Standard', 'Premium', 'Luxe'] as const;
 
 export function normalizePhone(phone?: string | null) {
