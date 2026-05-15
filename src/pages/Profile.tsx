@@ -168,7 +168,7 @@ const Profile = () => {
       </div>
 
       <p className="text-center text-xs text-muted-foreground mt-8">
-        Vos Resto v1.1 · Dakar, Sénégal
+        Vos Resto v1.1 · Sénégal
       </p>
     </div>
   );
