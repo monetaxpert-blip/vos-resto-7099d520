@@ -85,8 +85,11 @@ const RestaurantOnboarding = () => {
         <Input placeholder="Nom du restaurant *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <Input placeholder="Adresse" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
         <Input placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+          {CITY_OPTIONS.map((item) => <option key={item} value={item}>{item}</option>)}
+        </select>
         <select value={form.quartier} onChange={(e) => setForm({ ...form, quartier: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-          <option value="">Quartier</option>
+          <option value="">Quartier (optionnel)</option>
           {QUARTIER_OPTIONS.map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
         <select value={form.categories} onChange={(e) => setForm({ ...form, categories: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
