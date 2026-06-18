@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 import BottomNav from "@/components/layout/BottomNav";
 import SplashScreen from "@/components/pwa/SplashScreen";
 import OwnerGuard from "@/components/admin/OwnerGuard";
@@ -32,6 +33,7 @@ const AdminRestaurants = lazy(() => import("./pages/admin/AdminRestaurants"));
 const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const MyOrders = lazy(() => import("./pages/MyOrders"));
 
 const RouteFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -47,33 +49,36 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <ErrorBoundary>
-            <RoleRouter>
-              <Suspense fallback={<RouteFallback />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/search" element={<SearchPage />} />
-                  <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-                  <Route path="/favorites" element={<Favorites />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/map" element={<MapView />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/restaurant/onboarding" element={<RestaurantOnboarding />} />
-                  <Route path="/restaurant/dashboard" element={<OwnerGuard><RestaurantDashboard /></OwnerGuard>} />
-                  <Route path="/dashboard" element={<OwnerGuard><RestaurantDashboard /></OwnerGuard>} />
-                  <Route path="/admin" element={<AdminLayout />}>
-                    <Route index element={<AdminOverview />} />
-                    <Route path="restaurants" element={<AdminRestaurants />} />
-                    <Route path="analytics" element={<AdminAnalytics />} />
-                    <Route path="users" element={<AdminUsers />} />
-                  </Route>
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-              <BottomNav />
-            </RoleRouter>
-          </ErrorBoundary>
+          <CartProvider>
+            <ErrorBoundary>
+              <RoleRouter>
+                <Suspense fallback={<RouteFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/search" element={<SearchPage />} />
+                    <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+                    <Route path="/favorites" element={<Favorites />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/map" element={<MapView />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/orders" element={<MyOrders />} />
+                    <Route path="/restaurant/onboarding" element={<RestaurantOnboarding />} />
+                    <Route path="/restaurant/dashboard" element={<OwnerGuard><RestaurantDashboard /></OwnerGuard>} />
+                    <Route path="/dashboard" element={<OwnerGuard><RestaurantDashboard /></OwnerGuard>} />
+                    <Route path="/admin" element={<AdminLayout />}>
+                      <Route index element={<AdminOverview />} />
+                      <Route path="restaurants" element={<AdminRestaurants />} />
+                      <Route path="analytics" element={<AdminAnalytics />} />
+                      <Route path="users" element={<AdminUsers />} />
+                    </Route>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+                <BottomNav />
+              </RoleRouter>
+            </ErrorBoundary>
+          </CartProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
