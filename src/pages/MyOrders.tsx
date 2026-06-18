@@ -26,12 +26,14 @@ const STATUS_COLOR: Record<OrderStatus, string> = {
 const MyOrders = () => {
   const navigate = useNavigate();
   const { user, isReady } = useAuth();
-  const query = useMyOrders(user?.id);
+  const { data: orders, isLoading, error, refetch } = useMyOrders(user?.id);
 
   if (isReady && !user) {
     navigate('/auth?redirect=/orders');
     return null;
   }
+
+  const isEmpty = !isLoading && !error && (!orders || orders.length === 0);
 
   return (
     <div className="min-h-screen pb-24 bg-background pt-14 px-5 max-w-2xl mx-auto">
@@ -41,42 +43,44 @@ const MyOrders = () => {
       <h1 className="text-2xl font-extrabold mb-4">Mes commandes</h1>
 
       <QueryState
-        query={query}
-        empty={
-          <div className="text-center py-12 text-sm text-muted-foreground">
-            <p className="mb-3">Aucune commande pour le moment.</p>
-            <Button onClick={() => navigate('/search')}>Découvrir des restaurants</Button>
-          </div>
-        }
-        isEmpty={(data) => !data || data.length === 0}
+        loading={isLoading}
+        error={error as Error | null}
+        isEmpty={isEmpty}
+        onRetry={() => refetch()}
+        emptyTitle="Aucune commande"
+        emptyMessage="Vos commandes apparaîtront ici."
       >
-        {(orders) => (
-          <ul className="space-y-3">
-            {orders.map((o) => (
-              <li key={o.id} className="rounded-xl border bg-card p-4">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <p className="font-bold">{o.restaurant_name}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString('fr-FR')}</p>
-                  </div>
-                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${STATUS_COLOR[o.status]}`}>
-                    {STATUS_LABEL[o.status]}
-                  </span>
+        <ul className="space-y-3">
+          {(orders ?? []).map((o) => (
+            <li key={o.id} className="rounded-xl border bg-card p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <p className="font-bold">{o.restaurant_name}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString('fr-FR')}</p>
                 </div>
-                <ul className="text-sm text-muted-foreground space-y-0.5 mb-2">
-                  {o.items.map((it) => (
-                    <li key={it.id}>{it.quantity}× {it.name}</li>
-                  ))}
-                </ul>
-                <div className="flex justify-between items-center text-sm font-semibold">
-                  <span>Total</span>
-                  <span>{o.total_amount.toLocaleString('fr-FR')} {o.currency}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${STATUS_COLOR[o.status]}`}>
+                  {STATUS_LABEL[o.status]}
+                </span>
+              </div>
+              <ul className="text-sm text-muted-foreground space-y-0.5 mb-2">
+                {o.items.map((it) => (
+                  <li key={it.id}>{it.quantity}× {it.name}</li>
+                ))}
+              </ul>
+              <div className="flex justify-between items-center text-sm font-semibold">
+                <span>Total</span>
+                <span>{o.total_amount.toLocaleString('fr-FR')} {o.currency}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
       </QueryState>
+
+      {isEmpty && (
+        <div className="text-center mt-4">
+          <Button onClick={() => navigate('/search')}>Découvrir des restaurants</Button>
+        </div>
+      )}
     </div>
   );
 };
