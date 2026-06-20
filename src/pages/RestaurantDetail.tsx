@@ -347,6 +347,7 @@ const RestaurantDetail = () => {
           </div>
         )}
       </motion.div>
+      <CartDrawer />
     </div>
   );
 };
