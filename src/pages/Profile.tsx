@@ -72,6 +72,21 @@ const Profile = () => {
       )}
 
       {user && (
+        <button
+          onClick={() => navigate('/orders')}
+          className="w-full mb-4 rounded-2xl bg-card shadow-card p-4 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <ShoppingBag size={18} className="text-primary" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-bold text-sm">Mes commandes</p>
+            <p className="text-xs text-muted-foreground">Historique et suivi en temps réel</p>
+          </div>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </button>
+
+      {user && (
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
             onClick={() => navigate('/favorites')}
