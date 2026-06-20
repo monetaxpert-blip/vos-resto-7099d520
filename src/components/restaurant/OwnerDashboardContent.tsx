@@ -135,9 +135,10 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
 
   return (
     <Tabs defaultValue="profile" className="space-y-4">
-      <TabsList className="grid grid-cols-6 w-full h-auto bg-secondary rounded-2xl p-1">
+      <TabsList className="grid grid-cols-7 w-full h-auto bg-secondary rounded-2xl p-1">
         <TabsTrigger value="profile">Profil</TabsTrigger>
         <TabsTrigger value="reservations">Résa</TabsTrigger>
+        <TabsTrigger value="orders">Commandes</TabsTrigger>
         <TabsTrigger value="photos">Photos</TabsTrigger>
         <TabsTrigger value="menu">Menu</TabsTrigger>
         <TabsTrigger value="offers">Offres</TabsTrigger>
@@ -146,6 +147,10 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
 
       <TabsContent value="reservations">
         <OwnerReservations restaurantId={restaurant.id} />
+      </TabsContent>
+
+      <TabsContent value="orders">
+        <OwnerOrders restaurantId={restaurant.id} />
       </TabsContent>
 
       <TabsContent value="profile" className="space-y-4">
