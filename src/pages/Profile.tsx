@@ -85,6 +85,9 @@ const Profile = () => {
           </div>
           <ChevronRight size={18} className="text-muted-foreground" />
         </button>
+      )}
+
+
 
       {user && (
         <div className="grid grid-cols-2 gap-3 mb-6">
