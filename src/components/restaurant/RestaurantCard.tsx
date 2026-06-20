@@ -11,6 +11,7 @@ import { usePublicPlans } from '@/hooks/useOwnership';
 import { track } from '@/lib/analytics';
 import PlanBadge from './PlanBadge';
 import { getOpenStatus } from '@/lib/restaurant';
+import { deriveAveragePrice, formatFCFA } from '@/lib/format';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
