@@ -6,7 +6,7 @@ import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import CategoryTag from '@/components/restaurant/CategoryTag';
 import BudgetFilter from '@/components/search/BudgetFilter';
 import { QUARTIERS, TOP_CATEGORIES } from '@/data/types';
-import { parseBudgetFromQuery, formatFCFA } from '@/lib/format';
+import { parseBudgetFromQuery, formatFCFA, deriveAveragePrice } from '@/lib/format';
 import { track } from '@/lib/analytics';
 import { useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { useSortByPlan } from '@/hooks/useOwnership';
@@ -39,12 +39,10 @@ const SearchPage = () => {
       const matchesText = !textQuery || restaurant.name.toLowerCase().includes(textQuery) || restaurant.categories.some((category) => category.toLowerCase().includes(textQuery)) || (restaurant.quartier || '').toLowerCase().includes(textQuery) || (restaurant.description || '').toLowerCase().includes(textQuery);
       const matchesQuartier = !selectedQuartier || restaurant.quartier === selectedQuartier;
       const matchesCategory = !selectedCategory || restaurant.categories.some((category) => category.toLowerCase().includes(selectedCategory.toLowerCase())) || (restaurant.cuisineType || '').toLowerCase().includes(selectedCategory.toLowerCase());
-      const price = typeof restaurant.averagePrice === 'number' && !isNaN(restaurant.averagePrice)
+      const price = typeof restaurant.averagePrice === 'number' && !isNaN(restaurant.averagePrice) && restaurant.averagePrice > 0
         ? restaurant.averagePrice
-        : null;
-      // When a budget is active, only include restaurants with a known price ≤ budget.
-      // Restaurants without a declared price are excluded from results to avoid noise.
-      const matchesBudget = !budgetActive || (price !== null && price > 0 && price <= effectiveBudgetMax!);
+        : deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id);
+      const matchesBudget = !budgetActive || (price > 0 && price <= effectiveBudgetMax!);
       return matchesText && matchesQuartier && matchesCategory && matchesBudget;
     });
   }, [budgetActive, effectiveBudgetMax, inlineBudget, query, ranked, selectedCategory, selectedQuartier]);
@@ -88,25 +86,25 @@ const SearchPage = () => {
         </div>
 
         {inlineBudget !== null && <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1.5 text-xs font-semibold"><Wallet size={12} /> Budget détecté : ≤ {formatFCFA(inlineBudget)}</motion.div>}
-
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="overflow-hidden">
-              <div className="pt-4 space-y-4">
-                <BudgetFilter value={budgetMax} onChange={setBudgetMax} />
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Quartier</p>
-                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">{QUARTIERS.map((quartier) => <CategoryTag key={quartier} category={quartier} active={selectedQuartier === quartier} onClick={() => setSelectedQuartier(selectedQuartier === quartier ? null : quartier)} />)}</div>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Cuisine</p>
-                  <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">{TOP_CATEGORIES.map((category) => <CategoryTag key={category} category={category} active={selectedCategory === category} onClick={() => setSelectedCategory(selectedCategory === category ? null : category)} />)}</div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      <AnimatePresence initial={false}>
+        {showFilters && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="overflow-hidden bg-background/80 backdrop-blur-xl border-b border-border/50">
+            <div className="px-5 py-4 space-y-4">
+              <BudgetFilter value={budgetMax} onChange={setBudgetMax} />
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Quartier</p>
+                <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">{QUARTIERS.map((quartier) => <CategoryTag key={quartier} category={quartier} active={selectedQuartier === quartier} onClick={() => setSelectedQuartier(selectedQuartier === quartier ? null : quartier)} />)}</div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Cuisine</p>
+                <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">{TOP_CATEGORIES.map((category) => <CategoryTag key={category} category={category} active={selectedCategory === category} onClick={() => setSelectedCategory(selectedCategory === category ? null : category)} />)}</div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="px-5 pt-4">
         <div className="flex items-center justify-between mb-4">

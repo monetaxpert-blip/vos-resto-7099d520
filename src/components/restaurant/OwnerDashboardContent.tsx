@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import OwnerReservations from '@/components/restaurant/OwnerReservations';
+import OwnerOrders from '@/components/restaurant/OwnerOrders';
+import LocationPicker from '@/components/restaurant/LocationPicker';
 import { formatFCFA } from '@/lib/format';
 
 const schema = z.object({
@@ -133,9 +135,10 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
 
   return (
     <Tabs defaultValue="profile" className="space-y-4">
-      <TabsList className="grid grid-cols-6 w-full h-auto bg-secondary rounded-2xl p-1">
+      <TabsList className="grid grid-cols-7 w-full h-auto bg-secondary rounded-2xl p-1">
         <TabsTrigger value="profile">Profil</TabsTrigger>
         <TabsTrigger value="reservations">Résa</TabsTrigger>
+        <TabsTrigger value="orders">Commandes</TabsTrigger>
         <TabsTrigger value="photos">Photos</TabsTrigger>
         <TabsTrigger value="menu">Menu</TabsTrigger>
         <TabsTrigger value="offers">Offres</TabsTrigger>
@@ -144,6 +147,10 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
 
       <TabsContent value="reservations">
         <OwnerReservations restaurantId={restaurant.id} />
+      </TabsContent>
+
+      <TabsContent value="orders">
+        <OwnerOrders restaurantId={restaurant.id} />
       </TabsContent>
 
       <TabsContent value="profile" className="space-y-4">
@@ -180,9 +187,12 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
             <Input value={form.profile_image} onChange={(e) => setForm((s) => ({ ...s, profile_image: e.target.value }))} placeholder="Image principale URL" />
             <Input value={form.banner_image} onChange={(e) => setForm((s) => ({ ...s, banner_image: e.target.value }))} placeholder="Bannière URL" />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input value={form.latitude} onChange={(e) => setForm((s) => ({ ...s, latitude: e.target.value }))} placeholder="Latitude" type="number" step="any" />
-            <Input value={form.longitude} onChange={(e) => setForm((s) => ({ ...s, longitude: e.target.value }))} placeholder="Longitude" type="number" step="any" />
+          <div className="rounded-xl bg-secondary p-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold"><MapPin size={14} className="text-primary" /> Position GPS</div>
+            <LocationPicker
+              value={form.latitude && form.longitude ? { lat: Number(form.latitude), lng: Number(form.longitude) } : null}
+              onChange={(pos) => setForm((s) => ({ ...s, latitude: String(pos.lat), longitude: String(pos.lng) }))}
+            />
           </div>
           <div className="rounded-xl bg-secondary p-3 space-y-3">
             <div className="flex items-center gap-2 text-sm font-semibold"><MessageCircle size={14} className="text-primary" /> WhatsApp</div>

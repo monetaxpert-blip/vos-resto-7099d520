@@ -11,6 +11,7 @@ import { usePublicPlans } from '@/hooks/useOwnership';
 import { track } from '@/lib/analytics';
 import PlanBadge from './PlanBadge';
 import { getOpenStatus } from '@/lib/restaurant';
+import { deriveAveragePrice, formatFCFA } from '@/lib/format';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -115,7 +116,7 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
           {restaurant.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary"><Star size={10} className="fill-current" /> Featured</span>}
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          {restaurant.averagePrice ? <span>Budget moyen {restaurant.averagePrice.toLocaleString('fr-FR')} FCFA</span> : null}
+          <span>Budget moyen {formatFCFA(typeof restaurant.averagePrice === 'number' && restaurant.averagePrice > 0 ? restaurant.averagePrice : deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id))}</span>
           <span>{openStatus.label}</span>
         </div>
       </div>

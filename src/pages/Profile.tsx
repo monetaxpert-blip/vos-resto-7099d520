@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield, Bell } from 'lucide-react';
+import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield, Bell, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -70,6 +70,24 @@ const Profile = () => {
           <ChevronRight size={18} className="text-muted-foreground" />
         </button>
       )}
+
+      {user && (
+        <button
+          onClick={() => navigate('/orders')}
+          className="w-full mb-4 rounded-2xl bg-card shadow-card p-4 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <ShoppingBag size={18} className="text-primary" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-bold text-sm">Mes commandes</p>
+            <p className="text-xs text-muted-foreground">Historique et suivi en temps réel</p>
+          </div>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </button>
+      )}
+
+
 
       {user && (
         <div className="grid grid-cols-2 gap-3 mb-6">
