@@ -6,7 +6,7 @@ import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import CategoryTag from '@/components/restaurant/CategoryTag';
 import BudgetFilter from '@/components/search/BudgetFilter';
 import { QUARTIERS, TOP_CATEGORIES } from '@/data/types';
-import { parseBudgetFromQuery, formatFCFA } from '@/lib/format';
+import { parseBudgetFromQuery, formatFCFA, deriveAveragePrice } from '@/lib/format';
 import { track } from '@/lib/analytics';
 import { useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { useSortByPlan } from '@/hooks/useOwnership';
