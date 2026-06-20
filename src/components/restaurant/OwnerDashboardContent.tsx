@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import OwnerReservations from '@/components/restaurant/OwnerReservations';
+import OwnerOrders from '@/components/restaurant/OwnerOrders';
+import LocationPicker from '@/components/restaurant/LocationPicker';
 import { formatFCFA } from '@/lib/format';
 
 const schema = z.object({
