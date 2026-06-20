@@ -9,13 +9,15 @@ import { deriveAveragePrice, formatFCFA } from '@/lib/format';
 import { getRestaurantGallery, getRestaurantImage } from '@/lib/photos';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useRestaurantPhotos } from '@/hooks/useRestaurantPhotos';
+import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
 import RatingBadge from '@/components/restaurant/RatingBadge';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import StaggerList from '@/components/animations/StaggerList';
 import RouteButton from '@/components/restaurant/RouteButton';
 import ReservationSheet from '@/components/restaurant/ReservationSheet';
-import MenuSection from '@/components/restaurant/MenuSection';
+import MenuSection, { type MenuSectionCategory } from '@/components/restaurant/MenuSection';
 import RestaurantMap from '@/components/map/RestaurantMap';
+import CartDrawer from '@/components/restaurant/CartDrawer';
 import { track } from '@/lib/analytics';
 
 const RestaurantDetail = () => {
