@@ -39,12 +39,10 @@ const SearchPage = () => {
       const matchesText = !textQuery || restaurant.name.toLowerCase().includes(textQuery) || restaurant.categories.some((category) => category.toLowerCase().includes(textQuery)) || (restaurant.quartier || '').toLowerCase().includes(textQuery) || (restaurant.description || '').toLowerCase().includes(textQuery);
       const matchesQuartier = !selectedQuartier || restaurant.quartier === selectedQuartier;
       const matchesCategory = !selectedCategory || restaurant.categories.some((category) => category.toLowerCase().includes(selectedCategory.toLowerCase())) || (restaurant.cuisineType || '').toLowerCase().includes(selectedCategory.toLowerCase());
-      const price = typeof restaurant.averagePrice === 'number' && !isNaN(restaurant.averagePrice)
+      const price = typeof restaurant.averagePrice === 'number' && !isNaN(restaurant.averagePrice) && restaurant.averagePrice > 0
         ? restaurant.averagePrice
-        : null;
-      // When a budget is active, only include restaurants with a known price ≤ budget.
-      // Restaurants without a declared price are excluded from results to avoid noise.
-      const matchesBudget = !budgetActive || (price !== null && price > 0 && price <= effectiveBudgetMax!);
+        : deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id);
+      const matchesBudget = !budgetActive || (price > 0 && price <= effectiveBudgetMax!);
       return matchesText && matchesQuartier && matchesCategory && matchesBudget;
     });
   }, [budgetActive, effectiveBudgetMax, inlineBudget, query, ranked, selectedCategory, selectedQuartier]);
