@@ -333,7 +333,7 @@ const RestaurantDetail = () => {
         )}
 
         {/* Menu */}
-        <MenuSection menu={menu} />
+        <MenuSection menu={menu} orderable={hasRealMenu} restaurantId={restaurant.id} restaurantName={restaurant.name} />
 
         {/* Similar */}
         {similar.length > 0 && (
