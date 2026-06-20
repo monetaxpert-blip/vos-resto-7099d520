@@ -28,6 +28,7 @@ const RestaurantDetail = () => {
   const { list: dbList } = useDBRestaurants();
   const { isFavorite, toggle } = useFavorites();
   const { data: dbPhotos } = useRestaurantPhotos(restaurant?.id);
+  const { items: dbMenu } = useRestaurantMenu(restaurant?.id);
   const [activeImg, setActiveImg] = useState(0);
 
   // Owner redirect: restaurant owners (non-admin) should not browse public details
@@ -37,12 +38,23 @@ const RestaurantDetail = () => {
     }
   }, [isReady, isRestaurantOwner, isAdmin, navigate]);
 
-  const menu = useMemo(
-    () => (restaurant ? getMenuForRestaurant(restaurant.id, restaurant.categories) : []),
-    [restaurant]
-  );
+  const hasRealMenu = dbMenu.length > 0;
+  const menu: MenuSectionCategory[] = useMemo(() => {
+    if (!restaurant) return [];
+    if (hasRealMenu) {
+      const groups = new Map<string, MenuSectionCategory>();
+      for (const it of dbMenu) {
+        const catName = it.category?.trim() || 'Menu';
+        const id = catName.toLowerCase().replace(/\s+/g, '-');
+        if (!groups.has(id)) groups.set(id, { id, name: catName, items: [] });
+        groups.get(id)!.items.push({ id: it.id, name: it.name, description: it.description, price: Number(it.price) });
+      }
+      return Array.from(groups.values());
+    }
+    return getMenuForRestaurant(restaurant.id, restaurant.categories);
+  }, [restaurant, dbMenu, hasRealMenu]);
   const avgPrice = useMemo(
-    () => (restaurant ? deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id) : 0),
+    () => (restaurant ? (typeof restaurant.averagePrice === 'number' && restaurant.averagePrice > 0 ? restaurant.averagePrice : deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id)) : 0),
     [restaurant]
   );
   const gallery = useMemo(() => {
