@@ -13,6 +13,7 @@ export interface OwnerReservation {
   guests: number;
   status: 'pending' | 'confirmed' | 'cancelled';
   created_at: string;
+  customer_name?: string | null;
   client_name?: string | null;
   client_phone?: string | null;
 }
