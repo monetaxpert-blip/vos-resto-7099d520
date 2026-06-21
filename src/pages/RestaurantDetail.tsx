@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon, Loader2 } from 'lucide-react';
+import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon, Loader2, ShoppingBag } from 'lucide-react';
 import { useRestaurantById, useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuForRestaurant } from '@/data/menus';
@@ -232,7 +232,29 @@ const RestaurantDetail = () => {
         <div className="space-y-3 mb-5">
           <RouteButton restaurant={restaurant} />
           <ReservationSheet restaurant={restaurant} />
+          {hasRealMenu && (
+            <button
+              onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="w-full rounded-2xl bg-primary text-primary-foreground px-5 py-4 flex items-center justify-between shadow-card"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary-foreground/15 flex items-center justify-center">
+                  <ShoppingBag size={18} />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-sm">Commander</p>
+                  <p className="text-xs opacity-80">Livraison ou à emporter</p>
+                </div>
+              </div>
+              <span className="text-xs font-semibold">Voir le menu →</span>
+            </button>
+          )}
         </div>
+
+        {/* Orderable menu surfaced near the top */}
+        {hasRealMenu && (
+          <MenuSection id="menu" menu={menu} orderable restaurantId={restaurant.id} restaurantName={restaurant.name} />
+        )}
 
         {/* Map */}
         {restaurant.lat && restaurant.lng && (
