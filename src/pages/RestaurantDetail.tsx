@@ -354,8 +354,8 @@ const RestaurantDetail = () => {
           </div>
         )}
 
-        {/* Menu */}
-        <MenuSection menu={menu} orderable={hasRealMenu} restaurantId={restaurant.id} restaurantName={restaurant.name} />
+        {/* Indicative menu (when no orderable menu exists) — kept lower as reference */}
+        {!hasRealMenu && <MenuSection menu={menu} orderable={false} restaurantId={restaurant.id} restaurantName={restaurant.name} />}
 
         {/* Similar */}
         {similar.length > 0 && (
