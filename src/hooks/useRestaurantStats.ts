@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface RestaurantStats {
@@ -12,7 +13,9 @@ export interface RestaurantStats {
 }
 
 export function useRestaurantStats(restaurantId?: string) {
-  return useQuery({
+  const qc = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['restaurant-stats', restaurantId],
     enabled: !!restaurantId,
     queryFn: async (): Promise<RestaurantStats> => {
@@ -52,4 +55,26 @@ export function useRestaurantStats(restaurantId?: string) {
       };
     },
   });
+
+  useEffect(() => {
+    if (!restaurantId) return;
+    const channel = supabase
+      .channel(`analytics-events-${restaurantId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'analytics_events',
+          filter: `restaurant_id=eq.${restaurantId}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ['restaurant-stats', restaurantId] })
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [restaurantId, qc]);
+
+  return query;
 }

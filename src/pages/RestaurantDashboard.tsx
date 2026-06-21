@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, Clock, Plus, TriangleAlert } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +15,11 @@ const RestaurantDashboard = () => {
   const { ownerships, loading, refresh } = useMyOwnerships();
   const { list, refresh: refreshRestaurants } = useDBRestaurants({ adminMode: true });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const dashboardRef = useRef<HTMLElement>(null);
+  const handleSelect = (id: string) => {
+    setSelectedId(id);
+    setTimeout(() => dashboardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  };
   const [modal, setModal] = useState<{ ownershipKey: string; current: Plan; initial?: Plan } | null>(null);
 
   const ownedRestaurants = useMemo(
@@ -61,7 +66,7 @@ const RestaurantDashboard = () => {
               const isSelected = selected?.ownership.restaurant_id === ownership.restaurant_id;
               const daysLeft = trialDaysLeft(ownership.trial_ends_at);
               return (
-                <button key={ownership.restaurant_id} onClick={() => setSelectedId(ownership.restaurant_id)} className={`w-full rounded-2xl border p-4 text-left ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card'}`}>
+                <button key={ownership.restaurant_id} onClick={() => handleSelect(ownership.restaurant_id)} className={`w-full rounded-2xl border p-4 text-left ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card'}`}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-bold text-sm">{restaurant.name}</p>
@@ -96,7 +101,7 @@ const RestaurantDashboard = () => {
             </div>
           </aside>
 
-          <main>
+          <main ref={dashboardRef}>
             {selected?.restaurant && <OwnerDashboardContent restaurant={selected.restaurant} onRefresh={async () => { await refresh(); await refreshRestaurants(); }} />}
           </main>
         </div>

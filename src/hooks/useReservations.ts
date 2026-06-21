@@ -13,6 +13,7 @@ export interface DbReservation {
   reservation_time: string;
   guests: number;
   status: 'pending' | 'confirmed' | 'cancelled';
+  customer_name: string | null;
   created_at: string;
 }
 
@@ -66,6 +67,7 @@ export const useReservations = () => {
       date: string;
       time: string;
       guests: number;
+      customerName: string;
     }) => {
       if (!user) throw new Error('Connectez-vous pour réserver');
       const { data, error } = await supabase
@@ -77,6 +79,7 @@ export const useReservations = () => {
           reservation_date: input.date,
           reservation_time: input.time,
           guests: input.guests,
+          customer_name: input.customerName,
           status: 'pending',
         })
         .select()

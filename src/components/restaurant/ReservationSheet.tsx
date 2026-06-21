@@ -25,6 +25,11 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
   const [time, setTime] = useState('20:00');
   const [guests, setGuests] = useState(2);
   const [success, setSuccess] = useState(false);
+  const defaultName = (user?.user_metadata?.display_name as string | undefined)
+    || [user?.user_metadata?.first_name, user?.user_metadata?.last_name].filter(Boolean).join(' ').trim()
+    || '';
+  const [customerName, setCustomerName] = useState(defaultName);
+  const [nameError, setNameError] = useState('');
 
   const days = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i));
 
@@ -33,6 +38,8 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
     setDate(addDays(new Date(), 1));
     setTime('20:00');
     setGuests(2);
+    setCustomerName(defaultName);
+    setNameError('');
   };
 
   const submit = async () => {
@@ -42,6 +49,12 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
       navigate('/auth');
       return;
     }
+    const trimmed = customerName.trim();
+    if (!trimmed) {
+      setNameError('Le nom du réservant est requis.');
+      return;
+    }
+    setNameError('');
     create.mutate(
       {
         restaurantId: restaurant.id,
@@ -49,6 +62,7 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
         date: format(date, 'yyyy-MM-dd'),
         time,
         guests,
+        customerName: trimmed,
       },
       {
         onSuccess: () => {
@@ -62,6 +76,7 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
       }
     );
   };
+
 
   return (
     <Drawer open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
@@ -150,6 +165,21 @@ const ReservationSheet = ({ restaurant }: ReservationSheetProps) => {
               exit={{ opacity: 0 }}
               className="px-5 pb-8 space-y-5 overflow-y-auto"
             >
+              {/* Customer name */}
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                  Nom du réservant *
+                </label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => { setCustomerName(e.target.value); if (e.target.value.trim()) setNameError(''); }}
+                  placeholder="Votre nom complet"
+                  className={`w-full h-12 rounded-2xl bg-secondary px-4 text-sm font-medium outline-none border ${nameError ? 'border-destructive' : 'border-transparent focus:border-primary'}`}
+                  required
+                />
+                {nameError && <p className="text-xs text-destructive mt-1.5">{nameError}</p>}
+              </div>
               {/* Date picker */}
               <div>
                 <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">

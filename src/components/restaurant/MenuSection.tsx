@@ -23,16 +23,17 @@ interface MenuSectionProps {
   orderable?: boolean;
   restaurantId?: string;
   restaurantName?: string;
+  id?: string;
 }
 
-const MenuSection = ({ menu, orderable = false, restaurantId, restaurantName }: MenuSectionProps) => {
+const MenuSection = ({ menu, orderable = false, restaurantId, restaurantName, id }: MenuSectionProps) => {
   const categoryIds = useMemo(() => menu.map((c) => c.id), [menu]);
   const cart = useCart();
 
   if (menu.length === 0) return null;
 
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(`menu-cat-${id}`);
+  const scrollTo = (catId: string) => {
+    const el = document.getElementById(`menu-cat-${catId}`);
     if (!el) return;
     const top = el.getBoundingClientRect().top + window.scrollY - 80;
     window.scrollTo({ top, behavior: 'smooth' });
@@ -52,7 +53,7 @@ const MenuSection = ({ menu, orderable = false, restaurantId, restaurantName }: 
   };
 
   return (
-    <section className="mt-8">
+    <section id={id} className="mt-8 scroll-mt-20">
       <h2 className="text-lg font-bold mb-3">Menu</h2>
       <div className="sticky top-0 z-20 -mx-5 px-5 py-2 bg-background/85 backdrop-blur-md border-b border-border/40">
         <div className="flex gap-2 overflow-x-auto hide-scrollbar">
