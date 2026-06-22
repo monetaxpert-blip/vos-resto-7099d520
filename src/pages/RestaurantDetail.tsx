@@ -147,20 +147,22 @@ const RestaurantDetail = () => {
 
   return (
     <div className="min-h-screen pb-32 bg-background">
-      {/* Hero gallery */}
+      {/* Hero gallery — swipeable carousel with side-peek */}
       <div className="relative h-72 overflow-hidden bg-secondary">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={gallery[activeImg]}
-            src={gallery[activeImg] ?? getRestaurantImage(restaurant.id, restaurant.categories, undefined, restaurant.name, restaurant.quartier)}
-            alt={restaurant.name}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        </AnimatePresence>
+        <Carousel opts={{ loop: false, align: 'start', dragFree: false }} setApi={setCarouselApi} className="h-full">
+          <CarouselContent className="h-72 ml-0">
+            {gallery.map((url, i) => (
+              <CarouselItem key={`${url}-${i}`} className={`pl-0 ${gallery.length > 1 ? 'basis-[92%]' : 'basis-full'}`}>
+                <img
+                  src={url ?? getRestaurantImage(restaurant.id, restaurant.categories, undefined, restaurant.name, restaurant.quartier)}
+                  alt={`${restaurant.name} ${i + 1}`}
+                  className="w-full h-72 object-cover"
+                  draggable={false}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
 
         <motion.button
@@ -185,23 +187,21 @@ const RestaurantDetail = () => {
           <Heart size={20} className={fav ? 'text-primary fill-primary' : 'text-white'} />
         </motion.button>
 
-        {/* Gallery thumbs */}
+        {/* Gallery dots */}
         {gallery.length > 1 && (
-          <div className="absolute bottom-16 left-0 right-0 px-5 flex gap-1.5 justify-center">
+          <div className="absolute bottom-16 left-0 right-0 px-5 flex gap-1.5 justify-center z-10">
             {gallery.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setActiveImg(i)}
+                onClick={() => carouselApi?.scrollTo(i)}
                 aria-label={`Photo ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === activeImg ? 'bg-white w-8' : 'bg-white/50 w-1.5'
-                }`}
+                className={`h-1.5 rounded-full transition-all ${i === activeImg ? 'bg-white w-8' : 'bg-white/50 w-1.5'}`}
               />
             ))}
           </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 p-5">
+        <div className="absolute bottom-0 left-0 right-0 p-5 pointer-events-none">
           <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} size="md" />
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
@@ -213,6 +213,7 @@ const RestaurantDetail = () => {
           </motion.h1>
         </div>
       </div>
+
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
