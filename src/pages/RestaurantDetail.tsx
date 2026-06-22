@@ -221,7 +221,22 @@ const RestaurantDetail = () => {
         transition={{ delay: 0.2 }}
         className="px-5 pt-5"
       >
-        {/* Categories + budget */}
+        {/* Active offers banner */}
+        {activeOffers.length > 0 && (
+          <div className="mb-4 space-y-2">
+            {activeOffers.map((o) => (
+              <div key={o.id} className="rounded-2xl bg-gradient-to-r from-primary to-orange-600 text-primary-foreground px-4 py-3 flex items-center gap-3 shadow-card">
+                <Sparkles size={18} className="shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-extrabold text-sm truncate">🔥 {o.title}{o.discount ? ` · -${o.discount}%` : ''}</p>
+                  {o.description && <p className="text-xs opacity-90 truncate">{o.description}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+
         <div className="flex flex-wrap gap-2 mb-4">
           {restaurant.categories.map((cat) => (
             <span key={cat} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
