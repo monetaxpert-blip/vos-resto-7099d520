@@ -81,6 +81,12 @@ export function trialDaysLeft(trialEndsAt: string): number {
   return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 }
 
+export function subscriptionDaysLeft(subscriptionEndsAt: string | null): number | null {
+  if (!subscriptionEndsAt) return null;
+  const ms = new Date(subscriptionEndsAt).getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+}
+
 export function isAccessActive(o: Pick<OwnershipRow, 'status' | 'trial_ends_at'>): boolean {
   if (o.status === 'active') return true;
   if (o.status === 'trial') return new Date(o.trial_ends_at).getTime() > Date.now();

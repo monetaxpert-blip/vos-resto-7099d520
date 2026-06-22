@@ -44,19 +44,14 @@ export function usePublicPlans() {
   const query = useQuery({
     queryKey: ownershipKeys.publicPlans(),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('restaurant_owners')
-        .select('restaurant_id, plan, status, trial_ends_at');
+      const { data, error } = await supabase.rpc('get_public_plans');
       if (error) {
         console.error('[usePublicPlans]', error);
         throw error;
       }
       const map: Record<string, Plan> = {};
-      for (const r of data ?? []) {
-        const isActive =
-          r.status === 'active' ||
-          (r.status === 'trial' && r.trial_ends_at && new Date(r.trial_ends_at).getTime() > Date.now());
-        if (isActive) map[r.restaurant_id] = r.plan as Plan;
+      for (const r of (data ?? []) as Array<{ restaurant_id: string; plan: string }>) {
+        map[r.restaurant_id] = r.plan as Plan;
       }
       return map;
     },
