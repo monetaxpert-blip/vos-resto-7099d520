@@ -138,13 +138,13 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       <TabsList className="flex w-full overflow-x-auto gap-1 bg-secondary rounded-2xl p-1 h-auto hide-scrollbar justify-start">
-        <TabsTrigger value="profile" className="flex-shrink-0 px-4">Profil</TabsTrigger>
-        <TabsTrigger value="reservations" className="flex-shrink-0 px-4">Résa</TabsTrigger>
-        <TabsTrigger value="orders" className="flex-shrink-0 px-4">Commandes</TabsTrigger>
-        <TabsTrigger value="photos" className="flex-shrink-0 px-4">Photos</TabsTrigger>
-        <TabsTrigger value="menu" className="flex-shrink-0 px-4">Menu</TabsTrigger>
-        <TabsTrigger value="offers" className="flex-shrink-0 px-4">Offres</TabsTrigger>
-        <TabsTrigger value="stats" className="flex-shrink-0 px-4">Stats</TabsTrigger>
+        <TabsTrigger value="profile" className="flex-shrink-0 px-3">Profil</TabsTrigger>
+        <TabsTrigger value="reservations" className="flex-shrink-0 px-3">Réservations</TabsTrigger>
+        <TabsTrigger value="orders" className="flex-shrink-0 px-3">Commandes</TabsTrigger>
+        <TabsTrigger value="photos" className="flex-shrink-0 px-3">Photos</TabsTrigger>
+        <TabsTrigger value="menu" className="flex-shrink-0 px-3">Menu</TabsTrigger>
+        <TabsTrigger value="offers" className="flex-shrink-0 px-3">Offres</TabsTrigger>
+        <TabsTrigger value="stats" className="flex-shrink-0 px-3">Stats</TabsTrigger>
       </TabsList>
 
       <TabsContent value="reservations">
@@ -171,12 +171,18 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
         )}
         <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
-            <Input value={form.name} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} placeholder="Nom du restaurant" />
-            <Select value={form.cuisine_type} onValueChange={(value) => setForm((s) => ({ ...s, cuisine_type: value }))}>
+            <Input className="w-full min-w-0" value={form.name} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} placeholder="Nom du restaurant" />
+            <Select value={CUISINE_OPTIONS.includes(form.cuisine_type as typeof CUISINE_OPTIONS[number]) ? form.cuisine_type : (form.cuisine_type ? 'Autre' : '')} onValueChange={(value) => setForm((s) => ({ ...s, cuisine_type: value === 'Autre' ? '' : value }))}>
               <SelectTrigger><SelectValue placeholder="Type de cuisine" /></SelectTrigger>
-              <SelectContent>{CUISINE_OPTIONS.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                {CUISINE_OPTIONS.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+                <SelectItem value="Autre">Autre (préciser)</SelectItem>
+              </SelectContent>
             </Select>
           </div>
+          {!CUISINE_OPTIONS.includes(form.cuisine_type as typeof CUISINE_OPTIONS[number]) && (
+            <Input className="w-full min-w-0" value={form.cuisine_type} onChange={(e) => setForm((s) => ({ ...s, cuisine_type: e.target.value }))} placeholder="Précisez votre type de cuisine" />
+          )}
           <Textarea value={form.description} onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))} placeholder="Description longue" />
           <div className="grid gap-3 sm:grid-cols-2">
             <Input value={form.phone} onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))} placeholder="Téléphone" />
@@ -211,17 +217,17 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
           </div>
           <div className="rounded-xl bg-secondary p-3 space-y-3">
             <div className="flex items-center gap-2 text-sm font-semibold"><MessageCircle size={14} className="text-primary" /> WhatsApp</div>
-            <Input value={whatsappLink} readOnly />
+            <Input className="w-full min-w-0 truncate" value={whatsappLink} readOnly />
             <a href={whatsappLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-primary"><LinkIcon size={14} /> Tester le lien</a>
           </div>
           <div className="rounded-xl bg-secondary p-3 space-y-3">
             <div className="flex items-center gap-2 text-sm font-semibold"><Store size={14} className="text-primary" /> Horaires</div>
             {DAYS.map(({ key, label }) => (
-              <div key={key} className="grid grid-cols-[120px_60px_1fr_1fr] gap-2 items-center">
+              <div key={key} className="grid grid-cols-[auto_auto_1fr_1fr] gap-2 items-center min-w-0">
                 <span className="text-sm">{label}</span>
                 <Switch checked={hours[key].open} onCheckedChange={(checked) => setHours((prev) => ({ ...prev, [key]: { ...prev[key], open: checked } }))} />
-                <Input type="time" value={hours[key].start} onChange={(e) => setHours((prev) => ({ ...prev, [key]: { ...prev[key], start: e.target.value } }))} />
-                <Input type="time" value={hours[key].end} onChange={(e) => setHours((prev) => ({ ...prev, [key]: { ...prev[key], end: e.target.value } }))} />
+                <Input className="min-w-0 px-2" type="time" value={hours[key].start} onChange={(e) => setHours((prev) => ({ ...prev, [key]: { ...prev[key], start: e.target.value } }))} />
+                <Input className="min-w-0 px-2" type="time" value={hours[key].end} onChange={(e) => setHours((prev) => ({ ...prev, [key]: { ...prev[key], end: e.target.value } }))} />
               </div>
             ))}
           </div>
