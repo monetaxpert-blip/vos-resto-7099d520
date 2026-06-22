@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon, Loader2, ShoppingBag } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon, Loader2, ShoppingBag, Sparkles } from 'lucide-react';
 import { useRestaurantById, useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuForRestaurant } from '@/data/menus';
@@ -10,6 +10,7 @@ import { getRestaurantGallery, getRestaurantImage } from '@/lib/photos';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useRestaurantPhotos } from '@/hooks/useRestaurantPhotos';
 import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
+import { useRestaurantOffers } from '@/hooks/useRestaurantOffers';
 import RatingBadge from '@/components/restaurant/RatingBadge';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import StaggerList from '@/components/animations/StaggerList';
@@ -18,7 +19,9 @@ import ReservationSheet from '@/components/restaurant/ReservationSheet';
 import MenuSection, { type MenuSectionCategory } from '@/components/restaurant/MenuSection';
 import RestaurantMap from '@/components/map/RestaurantMap';
 import CartDrawer from '@/components/restaurant/CartDrawer';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { track } from '@/lib/analytics';
+
 
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
