@@ -745,9 +745,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      owned_restaurants_public: {
+        Row: {
+          address: string | null
+          categories: string[] | null
+          city: string | null
+          created_at: string | null
+          hours: string | null
+          id: string | null
+          name: string | null
+          price_level: string | null
+          quartier: string | null
+        }
+        Insert: {
+          address?: string | null
+          categories?: string[] | null
+          city?: string | null
+          created_at?: string | null
+          hours?: string | null
+          id?: string | null
+          name?: string | null
+          price_level?: string | null
+          quartier?: string | null
+        }
+        Update: {
+          address?: string | null
+          categories?: string[] | null
+          city?: string | null
+          created_at?: string | null
+          hours?: string | null
+          id?: string | null
+          name?: string | null
+          price_level?: string | null
+          quartier?: string | null
+        }
+        Relationships: []
+      }
+      restaurant_plan_public: {
+        Row: {
+          plan: Database["public"]["Enums"]["subscription_plan"] | null
+          restaurant_id: string | null
+        }
+        Insert: {
+          plan?: Database["public"]["Enums"]["subscription_plan"] | null
+          restaurant_id?: string | null
+        }
+        Update: {
+          plan?: Database["public"]["Enums"]["subscription_plan"] | null
+          restaurant_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      activate_subscription_test: {
+        Args: { p_ownership_id: string; p_plan: string }
+        Returns: Json
+      }
       create_restaurant_with_owner: {
         Args: {
           p_address?: string
@@ -759,6 +813,13 @@ export type Database = {
           p_quartier?: string
         }
         Returns: Json
+      }
+      get_public_plans: {
+        Args: never
+        Returns: {
+          plan: string
+          restaurant_id: string
+        }[]
       }
       has_role: {
         Args: {
