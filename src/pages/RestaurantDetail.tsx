@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon, Loader2, ShoppingBag } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon, Loader2, ShoppingBag, Sparkles } from 'lucide-react';
 import { useRestaurantById, useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuForRestaurant } from '@/data/menus';
@@ -10,6 +10,7 @@ import { getRestaurantGallery, getRestaurantImage } from '@/lib/photos';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useRestaurantPhotos } from '@/hooks/useRestaurantPhotos';
 import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
+import { useRestaurantOffers } from '@/hooks/useRestaurantOffers';
 import RatingBadge from '@/components/restaurant/RatingBadge';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import StaggerList from '@/components/animations/StaggerList';
@@ -18,7 +19,9 @@ import ReservationSheet from '@/components/restaurant/ReservationSheet';
 import MenuSection, { type MenuSectionCategory } from '@/components/restaurant/MenuSection';
 import RestaurantMap from '@/components/map/RestaurantMap';
 import CartDrawer from '@/components/restaurant/CartDrawer';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { track } from '@/lib/analytics';
+
 
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,7 +32,10 @@ const RestaurantDetail = () => {
   const { isFavorite, toggle } = useFavorites();
   const { data: dbPhotos } = useRestaurantPhotos(restaurant?.id);
   const { items: dbMenu } = useRestaurantMenu(restaurant?.id);
+  const { offers } = useRestaurantOffers(restaurant?.id);
   const [activeImg, setActiveImg] = useState(0);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+
 
   // Owner redirect: restaurant owners (non-admin) should not browse public details
   useEffect(() => {
@@ -60,26 +66,24 @@ const RestaurantDetail = () => {
   const gallery = useMemo(() => {
     if (!restaurant) return [];
     if (dbPhotos && dbPhotos.length > 0) {
-      const sorted = [...dbPhotos].sort((a, b) => Number(b.is_hero) - Number(a.is_hero));
-      const urls = sorted.map((p) => p.url);
-      if (urls.length >= 4) return urls.slice(0, 4);
-      const fallback = getRestaurantGallery(
-        restaurant.id,
-        restaurant.categories,
-        4,
-        restaurant.name,
-        restaurant.quartier
-      );
-      return [...urls, ...fallback].slice(0, 4);
+      return [...dbPhotos].sort((a, b) => Number(b.is_hero) - Number(a.is_hero)).map((p) => p.url);
     }
-    return getRestaurantGallery(
-      restaurant.id,
-      restaurant.categories,
-      4,
-      restaurant.name,
-      restaurant.quartier
-    );
+    return getRestaurantGallery(restaurant.id, restaurant.categories, 4, restaurant.name, restaurant.quartier);
   }, [restaurant, dbPhotos]);
+
+  const activeOffers = useMemo(() => {
+    const now = Date.now();
+    return offers.filter((o) => !o.valid_until || new Date(o.valid_until).getTime() > now);
+  }, [offers]);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => setActiveImg(carouselApi.selectedScrollSnap());
+    carouselApi.on('select', onSelect);
+    onSelect();
+    return () => { carouselApi.off('select', onSelect); };
+  }, [carouselApi]);
+
 
   useEffect(() => {
     if (restaurant?.id) track('restaurant_view', { restaurantId: restaurant.id });
@@ -143,20 +147,22 @@ const RestaurantDetail = () => {
 
   return (
     <div className="min-h-screen pb-32 bg-background">
-      {/* Hero gallery */}
+      {/* Hero gallery — swipeable carousel with side-peek */}
       <div className="relative h-72 overflow-hidden bg-secondary">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={gallery[activeImg]}
-            src={gallery[activeImg] ?? getRestaurantImage(restaurant.id, restaurant.categories, undefined, restaurant.name, restaurant.quartier)}
-            alt={restaurant.name}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        </AnimatePresence>
+        <Carousel opts={{ loop: false, align: 'start', dragFree: false }} setApi={setCarouselApi} className="h-full">
+          <CarouselContent className="h-72 ml-0">
+            {gallery.map((url, i) => (
+              <CarouselItem key={`${url}-${i}`} className={`pl-0 ${gallery.length > 1 ? 'basis-[92%]' : 'basis-full'}`}>
+                <img
+                  src={url ?? getRestaurantImage(restaurant.id, restaurant.categories, undefined, restaurant.name, restaurant.quartier)}
+                  alt={`${restaurant.name} ${i + 1}`}
+                  className="w-full h-72 object-cover"
+                  draggable={false}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
 
         <motion.button
@@ -181,23 +187,21 @@ const RestaurantDetail = () => {
           <Heart size={20} className={fav ? 'text-primary fill-primary' : 'text-white'} />
         </motion.button>
 
-        {/* Gallery thumbs */}
+        {/* Gallery dots */}
         {gallery.length > 1 && (
-          <div className="absolute bottom-16 left-0 right-0 px-5 flex gap-1.5 justify-center">
+          <div className="absolute bottom-16 left-0 right-0 px-5 flex gap-1.5 justify-center z-10">
             {gallery.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setActiveImg(i)}
+                onClick={() => carouselApi?.scrollTo(i)}
                 aria-label={`Photo ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === activeImg ? 'bg-white w-8' : 'bg-white/50 w-1.5'
-                }`}
+                className={`h-1.5 rounded-full transition-all ${i === activeImg ? 'bg-white w-8' : 'bg-white/50 w-1.5'}`}
               />
             ))}
           </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 p-5">
+        <div className="absolute bottom-0 left-0 right-0 p-5 pointer-events-none">
           <RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} size="md" />
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
@@ -210,13 +214,29 @@ const RestaurantDetail = () => {
         </div>
       </div>
 
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="px-5 pt-5"
       >
-        {/* Categories + budget */}
+        {/* Active offers banner */}
+        {activeOffers.length > 0 && (
+          <div className="mb-4 space-y-2">
+            {activeOffers.map((o) => (
+              <div key={o.id} className="rounded-2xl bg-gradient-to-r from-primary to-orange-600 text-primary-foreground px-4 py-3 flex items-center gap-3 shadow-card">
+                <Sparkles size={18} className="shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-extrabold text-sm truncate">🔥 {o.title}{o.discount ? ` · -${o.discount}%` : ''}</p>
+                  {o.description && <p className="text-xs opacity-90 truncate">{o.description}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+
         <div className="flex flex-wrap gap-2 mb-4">
           {restaurant.categories.map((cat) => (
             <span key={cat} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">

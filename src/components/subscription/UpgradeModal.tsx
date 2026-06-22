@@ -41,19 +41,14 @@ const UpgradeModal = ({
   const handleActivateTest = async () => {
     if (!user) return;
     setLoading(true);
-    const { error } = await supabase
-      .from('restaurant_owners')
-      .update({
-        plan: selected,
-        status: 'active',
-        subscription_started_at: new Date().toISOString(),
-        subscription_mode: 'test',
-        payment_enabled: false,
-      })
-      .eq('id', ownershipId);
+    const { data, error } = await supabase.rpc('activate_subscription_test', {
+      p_ownership_id: ownershipId,
+      p_plan: selected,
+    });
     setLoading(false);
-    if (error) {
-      toast.error("Impossible d'activer l'abonnement");
+    const result = data as { success?: boolean; error?: string } | null;
+    if (error || !result?.success) {
+      toast.error(result?.error || "Impossible d'activer l'abonnement");
       return;
     }
     toast.success(`Plan ${selected} activé (mode test)`);
