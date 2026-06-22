@@ -32,7 +32,10 @@ const RestaurantDetail = () => {
   const { isFavorite, toggle } = useFavorites();
   const { data: dbPhotos } = useRestaurantPhotos(restaurant?.id);
   const { items: dbMenu } = useRestaurantMenu(restaurant?.id);
+  const { offers } = useRestaurantOffers(restaurant?.id);
   const [activeImg, setActiveImg] = useState(0);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+
 
   // Owner redirect: restaurant owners (non-admin) should not browse public details
   useEffect(() => {
@@ -63,26 +66,24 @@ const RestaurantDetail = () => {
   const gallery = useMemo(() => {
     if (!restaurant) return [];
     if (dbPhotos && dbPhotos.length > 0) {
-      const sorted = [...dbPhotos].sort((a, b) => Number(b.is_hero) - Number(a.is_hero));
-      const urls = sorted.map((p) => p.url);
-      if (urls.length >= 4) return urls.slice(0, 4);
-      const fallback = getRestaurantGallery(
-        restaurant.id,
-        restaurant.categories,
-        4,
-        restaurant.name,
-        restaurant.quartier
-      );
-      return [...urls, ...fallback].slice(0, 4);
+      return [...dbPhotos].sort((a, b) => Number(b.is_hero) - Number(a.is_hero)).map((p) => p.url);
     }
-    return getRestaurantGallery(
-      restaurant.id,
-      restaurant.categories,
-      4,
-      restaurant.name,
-      restaurant.quartier
-    );
+    return getRestaurantGallery(restaurant.id, restaurant.categories, 4, restaurant.name, restaurant.quartier);
   }, [restaurant, dbPhotos]);
+
+  const activeOffers = useMemo(() => {
+    const now = Date.now();
+    return offers.filter((o) => !o.valid_until || new Date(o.valid_until).getTime() > now);
+  }, [offers]);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => setActiveImg(carouselApi.selectedScrollSnap());
+    carouselApi.on('select', onSelect);
+    onSelect();
+    return () => { carouselApi.off('select', onSelect); };
+  }, [carouselApi]);
+
 
   useEffect(() => {
     if (restaurant?.id) track('restaurant_view', { restaurantId: restaurant.id });
