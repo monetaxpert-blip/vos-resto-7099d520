@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Clock, Plus, TriangleAlert } from 'lucide-react';
+import { Check, Clock, Plus, TriangleAlert } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMyOwnerships } from '@/hooks/useOwnership';
 import { useDBRestaurants } from '@/hooks/useDBRestaurants';
@@ -16,10 +16,6 @@ const RestaurantDashboard = () => {
   const { list, refresh: refreshRestaurants } = useDBRestaurants({ adminMode: true });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const dashboardRef = useRef<HTMLElement>(null);
-  const handleSelect = (id: string) => {
-    setSelectedId(id);
-    setTimeout(() => dashboardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-  };
   const [modal, setModal] = useState<{ ownershipKey: string; current: Plan; initial?: Plan } | null>(null);
 
   const ownedRestaurants = useMemo(
@@ -27,12 +23,67 @@ const RestaurantDashboard = () => {
     [list, ownerships]
   );
 
+  const isMulti = ownedRestaurants.length > 1;
   const selected = ownedRestaurants.find((item) => item.ownership.restaurant_id === (selectedId ?? ownedRestaurants[0]?.ownership.restaurant_id)) ?? ownedRestaurants[0] ?? null;
 
   if (!authLoading && !user) {
     navigate('/auth?redirect=/dashboard');
     return null;
   }
+
+  const handleSelect = (id: string) => {
+    setSelectedId(id);
+    setTimeout(() => dashboardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  };
+
+  const renderStatusBlock = (ownership: typeof ownedRestaurants[number]['ownership']) => {
+    const active = isAccessActive(ownership);
+    const inTrial = ownership.status === 'trial' && active;
+    const daysLeft = trialDaysLeft(ownership.trial_ends_at);
+    const subDays = subscriptionDaysLeft(ownership.subscription_ends_at);
+    const trialEndingSoon = inTrial && daysLeft <= 7;
+    const subEndingSoon = ownership.status === 'active' && subDays !== null && subDays <= 7;
+    return (
+      <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="font-semibold text-sm">
+            {ownership.status === 'active' ? 'Abonnement actif' : inTrial ? 'Essai gratuit' : 'Accès expiré'}
+          </p>
+          <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full ${active ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+            {active ? 'Actif' : 'Lecture seule'}
+          </span>
+        </div>
+        {inTrial && !trialEndingSoon && (
+          <p className="flex items-center gap-2 text-xs font-semibold text-primary"><Clock size={12} /> Essai gratuit · {daysLeft} jour(s) restant(s)</p>
+        )}
+        {ownership.status === 'active' && !subEndingSoon && (
+          <p className="flex items-center gap-2 text-xs font-semibold text-primary"><Check size={12} /> Abonnement actif{subDays !== null ? ` · ${subDays} jour(s)` : ''}</p>
+        )}
+        {trialEndingSoon && (
+          <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-2 space-y-2">
+            <p className="flex items-center gap-2 text-xs font-bold text-destructive"><TriangleAlert size={12} /> Votre essai gratuit se termine dans {daysLeft} jour(s)</p>
+            <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: 'PRO' })} className="w-full rounded-md bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold">S'abonner</button>
+          </div>
+        )}
+        {subEndingSoon && (
+          <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-2 space-y-2">
+            <p className="flex items-center gap-2 text-xs font-bold text-destructive"><TriangleAlert size={12} /> Votre abonnement expire dans {subDays} jour(s)</p>
+            <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: ownership.plan })} className="w-full rounded-md bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold">Renouveler</button>
+          </div>
+        )}
+        {!active && <p className="flex items-center gap-2 text-xs font-semibold text-destructive"><TriangleAlert size={12} /> Essai expiré</p>}
+        {ownership.status !== 'active' && PLANS[0] && (
+          <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: 'PRO' })} className="w-full rounded-xl bg-secondary p-3 text-left">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold text-sm">{PLANS[0].name}</span>
+              <span className="text-xs font-bold">{formatFCFA(PLANS[0].price)}/mois</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{PLANS[0].features[0]}</p>
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen pb-24 bg-background pt-14 px-5 max-w-5xl mx-auto">
@@ -56,66 +107,37 @@ const RestaurantDashboard = () => {
         </div>
       )}
 
-      {ownedRestaurants.length > 0 && (
+      {ownedRestaurants.length === 1 && selected?.restaurant && (
+        <div className="space-y-5">
+          {renderStatusBlock(selected.ownership)}
+          <main ref={dashboardRef}>
+            <OwnerDashboardContent restaurant={selected.restaurant} onRefresh={async () => { await refresh(); await refreshRestaurants(); }} />
+          </main>
+        </div>
+      )}
+
+      {isMulti && (
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-[320px_1fr] min-w-0">
           <aside className="space-y-4 min-w-0">
+            <h2 className="font-bold text-sm uppercase tracking-wide text-muted-foreground">Mes restaurants</h2>
             {ownedRestaurants.map(({ ownership, restaurant }) => {
               if (!restaurant) return null;
               const active = isAccessActive(ownership);
-              const inTrial = ownership.status === 'trial' && active;
               const isSelected = selected?.ownership.restaurant_id === ownership.restaurant_id;
-              const daysLeft = trialDaysLeft(ownership.trial_ends_at);
-              const subDays = subscriptionDaysLeft(ownership.subscription_ends_at);
-              const trialEndingSoon = inTrial && daysLeft <= 7;
-              const subEndingSoon = ownership.status === 'active' && subDays !== null && subDays <= 7;
               return (
                 <button key={ownership.restaurant_id} onClick={() => handleSelect(ownership.restaurant_id)} className={`w-full rounded-2xl border p-4 text-left min-w-0 ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card'}`}>
                   <div className="flex items-center justify-between gap-3 min-w-0">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-sm truncate">{restaurant.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">Plan {ownership.plan}</p>
-                    </div>
+                    <p className="font-bold text-sm truncate flex-1">{restaurant.name}</p>
                     <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full ${active ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
-                      {active ? 'Actif' : 'Lecture seule'}
+                      {active ? 'Actif' : 'Expiré'}
                     </span>
                   </div>
-                  {inTrial && !trialEndingSoon && <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-primary"><Clock size={12} /> Essai gratuit · {daysLeft} jours restants</p>}
-                  {ownership.status === 'active' && !subEndingSoon && <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-primary"><Check size={12} /> Abonnement actif</p>}
-                  {trialEndingSoon && (
-                    <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/30 p-2 space-y-2">
-                      <p className="flex items-center gap-2 text-xs font-bold text-destructive"><TriangleAlert size={12} /> Votre essai gratuit se termine dans {daysLeft} jour(s)</p>
-                      <span onClick={(e) => { e.stopPropagation(); setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: 'PREMIUM' }); }} className="inline-block w-full text-center rounded-md bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold">Passer à un plan payant</span>
-                    </div>
-                  )}
-                  {subEndingSoon && (
-                    <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/30 p-2 space-y-2">
-                      <p className="flex items-center gap-2 text-xs font-bold text-destructive"><TriangleAlert size={12} /> Votre abonnement {ownership.plan} expire dans {subDays} jour(s)</p>
-                      <span onClick={(e) => { e.stopPropagation(); setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: ownership.plan }); }} className="inline-block w-full text-center rounded-md bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold">Renouveler mon abonnement</span>
-                    </div>
-                  )}
-                  {!active && <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-destructive"><TriangleAlert size={12} /> Essai expiré</p>}
-                  <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground min-w-0">
-                    <span className="truncate">{restaurant.adminPlan}</span>
-                    <span className="inline-flex items-center gap-1 text-primary font-semibold shrink-0">Configurer <ArrowRight size={12} /></span>
-                  </div>
+                  <p className="text-xs text-muted-foreground truncate mt-1">{restaurant.quartier || restaurant.city}</p>
                 </button>
               );
             })}
-
-            <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
-              <h2 className="font-bold">Plans disponibles</h2>
-              {PLANS.map((plan) => (
-                <button key={plan.id} onClick={() => selected && setModal({ ownershipKey: selected.ownership.restaurant_id, current: selected.ownership.plan, initial: plan.id })} className="w-full text-left rounded-xl bg-secondary p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-semibold text-sm">{plan.name}</span>
-                    <span className="text-xs font-bold">{formatFCFA(plan.price)}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">{plan.features[0]}</p>
-                </button>
-              ))}
-            </div>
+            {selected && renderStatusBlock(selected.ownership)}
           </aside>
-
           <main ref={dashboardRef}>
             {selected?.restaurant && <OwnerDashboardContent restaurant={selected.restaurant} onRefresh={async () => { await refresh(); await refreshRestaurants(); }} />}
           </main>
