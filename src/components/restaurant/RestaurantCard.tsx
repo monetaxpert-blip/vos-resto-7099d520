@@ -30,8 +30,8 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
   const openStatus = getOpenStatus(restaurant.openingHours);
 
   const imageUrl = useMemo(
-    () => restaurant.profileImage || getRestaurantImage(restaurant.id, restaurant.categories, { width: 600, height: 400 }, restaurant.name, restaurant.quartier),
-    [restaurant.categories, restaurant.id, restaurant.name, restaurant.profileImage, restaurant.quartier]
+    () => restaurant.heroPhotoUrl || restaurant.profileImage || getRestaurantImage(restaurant.id, restaurant.categories, { width: 600, height: 400 }, restaurant.name, restaurant.quartier),
+    [restaurant.categories, restaurant.heroPhotoUrl, restaurant.id, restaurant.name, restaurant.profileImage, restaurant.quartier]
   );
 
   const go = () => {

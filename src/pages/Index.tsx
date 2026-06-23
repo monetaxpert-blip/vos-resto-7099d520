@@ -7,7 +7,6 @@ import StaggerList from '@/components/animations/StaggerList';
 import Footer from '@/components/layout/Footer';
 import { CATEGORY_EMOJIS, TOP_CATEGORIES } from '@/data/types';
 import { useDBRestaurants } from '@/hooks/useDBRestaurants';
-import { useSortByPlan } from '@/hooks/useOwnership';
 
 const HeroSection = memo(() => {
   const ref = useRef<HTMLDivElement>(null);
@@ -35,9 +34,7 @@ HeroSection.displayName = 'HeroSection';
 const Index = () => {
   const navigate = useNavigate();
   const { list, loading } = useDBRestaurants();
-  const ranked = useSortByPlan(list);
-  const featured = useMemo(() => ranked.filter((item) => item.isFeatured || item.adminPlan === 'Elite').slice(0, 10), [ranked]);
-  const topRated = useMemo(() => [...ranked].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 12), [ranked]);
+  const allSorted = useMemo(() => [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0)), [list]);
   const quartiers = useMemo(() => {
     const counts = new Map<string, number>();
     list.forEach((restaurant) => {
@@ -62,18 +59,10 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="mt-8">
-        <div className="px-5 flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">En vedette</h2>
-          <span className="text-xs text-muted-foreground">Premium & Elite</span>
-        </div>
-        {loading ? <p className="px-5 text-sm text-muted-foreground">Chargement...</p> : <div className="flex gap-4 overflow-x-auto hide-scrollbar px-5 pb-2">{featured.map((restaurant, index) => <RestaurantCard key={restaurant.id} restaurant={restaurant} variant="featured" index={index} />)}</div>}
-      </section>
-
       <section className="mt-10 px-5">
         <h2 className="text-xl font-bold mb-4">Explorer par quartier</h2>
         <div className="grid grid-cols-2 gap-3">
-          {quartiers.map((quartier, index) => (
+          {quartiers.map((quartier) => (
             <motion.button key={quartier.name} whileTap={{ scale: 0.95 }} onClick={() => navigate(`/search?quartier=${encodeURIComponent(quartier.name)}`)} className="relative rounded-2xl overflow-hidden h-24 bg-card border border-border shadow-card">
               <div className="absolute inset-0 flex flex-col items-start justify-end p-4 bg-gradient-to-br from-primary/10 via-background to-secondary">
                 <div className="flex items-center gap-1 text-muted-foreground text-xs mb-0.5"><MapPin size={10} /><span>{quartier.count} restos</span></div>
@@ -85,10 +74,14 @@ const Index = () => {
       </section>
 
       <section className="mt-10 px-5">
-        <h2 className="text-xl font-bold mb-4">Les mieux notés</h2>
-        <StaggerList className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {topRated.map((restaurant) => <RestaurantCard key={restaurant.id} restaurant={restaurant} />)}
-        </StaggerList>
+        <h2 className="text-xl font-bold mb-4">Les restaurants</h2>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Chargement...</p>
+        ) : (
+          <StaggerList className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {allSorted.map((restaurant) => <RestaurantCard key={restaurant.id} restaurant={restaurant} />)}
+          </StaggerList>
+        )}
       </section>
 
       <Footer />

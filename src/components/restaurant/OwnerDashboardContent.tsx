@@ -6,7 +6,7 @@ import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
 import { useRestaurantOffers } from '@/hooks/useRestaurantOffers';
 import { useRestaurantPhotos } from '@/hooks/useRestaurantPhotos';
 import { useRestaurantStats } from '@/hooks/useRestaurantStats';
-import { buildWhatsAppLink, CUISINE_OPTIONS, DAYS, DEFAULT_OPENING_HOURS, normalizeOpeningHours, PRICE_RANGE_OPTIONS, QUARTIER_OPTIONS } from '@/lib/restaurant';
+import { buildWhatsAppLink, CUISINE_OPTIONS, DAYS, DEFAULT_OPENING_HOURS, normalizeOpeningHours, PRICE_RANGE_OPTIONS } from '@/lib/restaurant';
 import type { DBRestaurant } from '@/hooks/useDBRestaurants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -196,10 +196,7 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
             </Select>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Select value={form.quartier} onValueChange={(value) => setForm((s) => ({ ...s, quartier: value }))}>
-              <SelectTrigger><SelectValue placeholder="Quartier" /></SelectTrigger>
-              <SelectContent>{QUARTIER_OPTIONS.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
-            </Select>
+            <Input value={form.quartier} onChange={(e) => setForm((s) => ({ ...s, quartier: e.target.value }))} placeholder="Quartier" />
             <Input value={form.website} onChange={(e) => setForm((s) => ({ ...s, website: e.target.value }))} placeholder="Site web" />
           </div>
           <Input value={form.address} onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))} placeholder="Adresse" />

@@ -1,7 +1,7 @@
-export type Plan = 'PRO' | 'PREMIUM' | 'ELITE';
+export type Plan = 'PRO';
 export type SubStatus = 'trial' | 'active' | 'expired' | 'cancelled';
 
-export const PLAN_RANK: Record<Plan, number> = { PRO: 1, PREMIUM: 2, ELITE: 3 };
+export const PLAN_RANK: Record<Plan, number> = { PRO: 1 };
 
 export interface PlanInfo {
   id: Plan;
@@ -10,49 +10,25 @@ export interface PlanInfo {
   tagline: string;
   features: string[];
   highlight?: boolean;
-  color: string; // tailwind gradient classes
+  color: string;
 }
 
 export const PLANS: PlanInfo[] = [
   {
     id: 'PRO',
-    name: 'PRO',
+    name: 'Abonnement',
     price: 10000,
-    tagline: 'Pour démarrer',
-    color: 'from-slate-500 to-slate-700',
-    features: [
-      'Gestion du profil restaurant',
-      'Ajout menu et photos',
-      'Gestion des réservations',
-      'Visibilité standard',
-    ],
-  },
-  {
-    id: 'PREMIUM',
-    name: 'PREMIUM',
-    price: 15000,
-    tagline: 'Le plus populaire',
+    tagline: 'Tout inclus pour votre restaurant',
     color: 'from-primary to-orange-600',
     highlight: true,
     features: [
-      'Tout du plan PRO',
-      'Mise en avant dans les résultats',
-      'Statistiques (vues, réservations)',
-      'Notifications clients basiques',
-    ],
-  },
-  {
-    id: 'ELITE',
-    name: 'ELITE',
-    price: 20000,
-    tagline: 'Visibilité maximale',
-    color: 'from-amber-500 to-yellow-600',
-    features: [
-      'Tout du plan PREMIUM',
-      'Mise en avant prioritaire (homepage)',
-      'Push notifications marketing',
-      'Badge restaurant recommandé',
-      'Analytics avancés',
+      'Fiche restaurant complète',
+      'Réservations en ligne',
+      'Commandes en ligne',
+      'Statistiques de visite',
+      'Offres et promotions',
+      'Géolocalisation',
+      'Tableau de bord restaurateur',
     ],
   },
 ];
