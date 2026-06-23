@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
-import { CITY_OPTIONS, CUISINE_OPTIONS, DAYS, DEFAULT_OPENING_HOURS, QUARTIER_OPTIONS } from '@/lib/restaurant';
+import { CITY_OPTIONS, CUISINE_OPTIONS, DAYS, DEFAULT_OPENING_HOURS } from '@/lib/restaurant';
 import LocationPicker from '@/components/restaurant/LocationPicker';
 import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
 import { useRestaurantPhotos } from '@/hooks/useRestaurantPhotos';
@@ -170,10 +170,7 @@ const RestaurantOnboarding = () => {
           <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
             {CITY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <select value={form.quartier} onChange={(e) => setForm({ ...form, quartier: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-            <option value="">Quartier (optionnel)</option>
-            {QUARTIER_OPTIONS.map((q) => <option key={q} value={q}>{q}</option>)}
-          </select>
+          <Input placeholder="Quartier (optionnel)" value={form.quartier} onChange={(e) => setForm({ ...form, quartier: e.target.value })} />
           <select value={form.cuisine} onChange={(e) => setForm({ ...form, cuisine: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
             {CUISINE_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
             <option value="Autre">Autre (préciser)</option>

@@ -33,6 +33,7 @@ export interface Restaurant {
   socialMedia: SocialMedia | null;
   profileImage?: string | null;
   bannerImage?: string | null;
+  heroPhotoUrl?: string | null;
   description?: string | null;
   whatsappNumber?: string | null;
   whatsappLink?: string | null;

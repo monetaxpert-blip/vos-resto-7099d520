@@ -79,6 +79,7 @@ const mapRow = (r: RawRow): DBRestaurant => ({
     : null,
   profileImage: r.profile_image,
   bannerImage: r.banner_image,
+  heroPhotoUrl: null,
   description: r.description,
   whatsappNumber: r.whatsapp_number,
   whatsappLink: r.whatsapp_link,
@@ -95,6 +96,25 @@ const mapRow = (r: RawRow): DBRestaurant => ({
   adminPlan: r.admin_plan,
 });
 
+const attachHeroPhotos = async (restaurants: DBRestaurant[]): Promise<DBRestaurant[]> => {
+  const ids = restaurants.map((r) => r.id);
+  if (ids.length === 0) return restaurants;
+  const { data, error } = await supabase
+    .from('restaurant_photos')
+    .select('restaurant_id, url, storage_path, is_hero, display_order')
+    .in('restaurant_id', ids)
+    .order('is_hero', { ascending: false })
+    .order('display_order', { ascending: true });
+  if (error) return restaurants;
+  const map = new Map<string, string>();
+  for (const p of (data ?? []) as Array<{ restaurant_id: string; url: string | null; storage_path: string }>) {
+    if (map.has(p.restaurant_id)) continue;
+    const url = p.url || supabase.storage.from('restaurant-photos').getPublicUrl(p.storage_path).data.publicUrl;
+    if (url) map.set(p.restaurant_id, url);
+  }
+  return restaurants.map((r) => ({ ...r, heroPhotoUrl: map.get(r.id) ?? null }));
+};
+
 const fetchRestaurants = async (adminMode: boolean): Promise<DBRestaurant[]> => {
   let query = supabase.from('restaurants').select('*');
   if (!adminMode) query = query.eq('is_active', true);
@@ -104,7 +124,8 @@ const fetchRestaurants = async (adminMode: boolean): Promise<DBRestaurant[]> => 
     .order('display_order', { ascending: false })
     .order('rating_count', { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((row) => mapRow(row as RawRow));
+  const restaurants = (data ?? []).map((row) => mapRow(row as RawRow));
+  return attachHeroPhotos(restaurants);
 };
 
 const fetchRestaurantById = async (id: string, adminMode: boolean): Promise<DBRestaurant | null> => {
@@ -112,7 +133,9 @@ const fetchRestaurantById = async (id: string, adminMode: boolean): Promise<DBRe
   if (!adminMode) q = q.eq('is_active', true);
   const { data, error } = await q.maybeSingle();
   if (error) throw error;
-  return data ? mapRow(data as RawRow) : null;
+  if (!data) return null;
+  const [withHero] = await attachHeroPhotos([mapRow(data as RawRow)]);
+  return withHero;
 };
 
 export const restaurantsKeys = {
@@ -121,10 +144,6 @@ export const restaurantsKeys = {
   detail: (id: string | undefined, adminMode: boolean) => ['restaurants', 'detail', id, { adminMode }] as const,
 };
 
-/**
- * List restaurants. Backed by React Query (cache, retry, dedup).
- * Public API kept stable: { list, loading, error, refresh }.
- */
 export function useDBRestaurants(opts: { adminMode?: boolean } = {}) {
   const adminMode = !!opts.adminMode;
   const qc = useQueryClient();
@@ -146,10 +165,6 @@ export function useDBRestaurants(opts: { adminMode?: boolean } = {}) {
   };
 }
 
-/**
- * Single restaurant by id. Targeted query, independent cache entry.
- * Public API kept stable: { restaurant, loading, error, retry }.
- */
 export function useRestaurantById(id?: string, opts: { adminMode?: boolean } = {}) {
   const adminMode = !!opts.adminMode;
   const query = useQuery({
