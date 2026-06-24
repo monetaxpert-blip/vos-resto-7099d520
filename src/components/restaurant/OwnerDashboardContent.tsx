@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ImagePlus, Link as LinkIcon, MapPin, MessageCircle, Plus, Sparkles, Store, Trash2, AlertCircle, X } from 'lucide-react';
+import { ImagePlus, Link as LinkIcon, MapPin, MessageCircle, Plus, Sparkles, Store, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
@@ -12,12 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import OwnerReservations from '@/components/restaurant/OwnerReservations';
 import OwnerOrders from '@/components/restaurant/OwnerOrders';
 import LocationPicker from '@/components/restaurant/LocationPicker';
+import OverviewTab from '@/components/restaurant/OverviewTab';
 import { formatFCFA } from '@/lib/format';
 
 const schema = z.object({
