@@ -38,7 +38,14 @@ const schema = z.object({
   longitude: z.coerce.number().min(-180).max(180).nullable(),
 });
 
-export default function OwnerDashboardContent({ restaurant, onRefresh }: { restaurant: DBRestaurant; onRefresh: () => Promise<void> | void }) {
+interface Props {
+  restaurant: DBRestaurant;
+  onRefresh: () => Promise<void> | void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
+export default function OwnerDashboardContent({ restaurant, onRefresh, activeTab: controlledTab, onTabChange }: Props) {
   const [form, setForm] = useState({
     name: restaurant.name,
     description: restaurant.description ?? '',
@@ -59,8 +66,12 @@ export default function OwnerDashboardContent({ restaurant, onRefresh }: { resta
   const [hours, setHours] = useState(normalizeOpeningHours(restaurant.openingHours ?? DEFAULT_OPENING_HOURS));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
-  const [menuBannerDismissed, setMenuBannerDismissed] = useState(false);
+  const [internalTab, setInternalTab] = useState('overview');
+  const activeTab = controlledTab ?? internalTab;
+  const setActiveTab = (tab: string) => {
+    if (onTabChange) onTabChange(tab);
+    else setInternalTab(tab);
+  };
   const [menuDraft, setMenuDraft] = useState({ name: '', description: '', price: '', category: '' });
   const [offerDraft, setOfferDraft] = useState({ title: '', description: '', discount: '', valid_until: '' });
   const { items, create: createMenu, remove: removeMenu } = useRestaurantMenu(restaurant.id);
