@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, Loader2, X } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { restaurants } from '@/data/restaurants';
+import { useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { TOP_CATEGORIES } from '@/data/types';
 import AllRestaurantsMap from '@/components/map/AllRestaurantsMap';
 import CategoryTag from '@/components/restaurant/CategoryTag';
@@ -10,19 +10,19 @@ import CategoryTag from '@/components/restaurant/CategoryTag';
 const MapView = () => {
   const navigate = useNavigate();
   const [category, setCategory] = useState<string | null>(null);
+  const { list, loading } = useDBRestaurants();
 
   const filtered = useMemo(() => {
-    if (!category) return restaurants;
-    return restaurants.filter((r) =>
+    if (!category) return list;
+    return list.filter((r) =>
       r.categories.some((c) => c.toLowerCase().includes(category.toLowerCase()))
     );
-  }, [category]);
+  }, [list, category]);
 
   const withCoords = filtered.filter((r) => r.lat && r.lng).length;
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
-      {/* Header */}
       <div className="flex-shrink-0 px-4 pt-12 pb-3 bg-background/95 backdrop-blur-md border-b border-border z-10">
         <div className="flex items-center gap-3 mb-3">
           <motion.button
@@ -61,9 +61,14 @@ const MapView = () => {
         </div>
       </div>
 
-      {/* Map fills remaining space */}
       <div className="flex-1 relative">
-        <AllRestaurantsMap restaurants={filtered} />
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <AllRestaurantsMap restaurants={filtered} />
+        )}
       </div>
     </div>
   );
