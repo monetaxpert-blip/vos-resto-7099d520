@@ -149,15 +149,9 @@ export default function OwnerDashboardContent({ restaurant, onRefresh, activeTab
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="flex w-full overflow-x-auto gap-1 bg-secondary rounded-2xl p-1 h-auto hide-scrollbar justify-start">
-        <TabsTrigger value="profile" className="flex-shrink-0 px-3">Profil</TabsTrigger>
-        <TabsTrigger value="reservations" className="flex-shrink-0 px-3">Réservations</TabsTrigger>
-        <TabsTrigger value="orders" className="flex-shrink-0 px-3">Commandes</TabsTrigger>
-        <TabsTrigger value="photos" className="flex-shrink-0 px-3">Photos</TabsTrigger>
-        <TabsTrigger value="menu" className="flex-shrink-0 px-3">Menu</TabsTrigger>
-        <TabsTrigger value="offers" className="flex-shrink-0 px-3">Offres</TabsTrigger>
-        <TabsTrigger value="stats" className="flex-shrink-0 px-3">Stats</TabsTrigger>
-      </TabsList>
+      <TabsContent value="overview">
+        <OverviewTab restaurant={restaurant} onNavigate={setActiveTab} />
+      </TabsContent>
 
       <TabsContent value="reservations">
         <OwnerReservations restaurantId={restaurant.id} />
@@ -168,19 +162,6 @@ export default function OwnerDashboardContent({ restaurant, onRefresh, activeTab
       </TabsContent>
 
       <TabsContent value="profile" className="space-y-4">
-        {items.length === 0 && !menuBannerDismissed && (
-          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 flex items-start gap-3">
-            <AlertCircle size={18} className="text-primary flex-shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">Votre menu est vide</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Les clients ne peuvent pas encore commander en ligne. Ajoutez vos plats dans l'onglet Menu.</p>
-              <button onClick={() => setActiveTab('menu')} className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-xs font-bold">
-                Aller à l'onglet Menu
-              </button>
-            </div>
-            <button onClick={() => setMenuBannerDismissed(true)} aria-label="Fermer" className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
-          </div>
-        )}
         <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Input className="w-full min-w-0" value={form.name} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} placeholder="Nom du restaurant" />
