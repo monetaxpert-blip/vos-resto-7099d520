@@ -28,6 +28,8 @@ export default defineConfig(({ mode }) => ({
       ],
       manifest: false, // We ship our own /public/manifest.json
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/auth\/callback/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
