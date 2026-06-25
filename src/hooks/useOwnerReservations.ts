@@ -50,21 +50,13 @@ export function useOwnerReservations(restaurantId: string | null | undefined) {
     },
   });
 
+  // Polling every 30s - avoids Supabase realtime channel errors
   useEffect(() => {
     if (!restaurantId) return;
-    const channel = supabase
-      .channel(`owner-reservations-${restaurantId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'reservations', filter: `restaurant_id=eq.${restaurantId}` },
-        () => qc.invalidateQueries({ queryKey: ['owner-reservations', restaurantId] })
-      )
-     .subscribe((status, err) => {
-        if (err) console.warn('[realtime:reservations]', status, err);
-      });
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const interval = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ['owner-reservations', restaurantId] });
+    }, 30000);
+    return () => clearInterval(interval);
   }, [restaurantId, qc]);
 
   const updateStatus = useMutation({
