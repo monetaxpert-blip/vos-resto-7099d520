@@ -59,7 +59,9 @@ export function useOwnerReservations(restaurantId: string | null | undefined) {
         { event: '*', schema: 'public', table: 'reservations', filter: `restaurant_id=eq.${restaurantId}` },
         () => qc.invalidateQueries({ queryKey: ['owner-reservations', restaurantId] })
       )
-      .subscribe();
+     .subscribe((status, err) => {
+        if (err) console.warn('[realtime:reservations]', status, err);
+      });
     return () => {
       supabase.removeChannel(channel);
     };
