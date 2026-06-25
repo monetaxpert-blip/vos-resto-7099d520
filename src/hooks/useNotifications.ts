@@ -43,7 +43,9 @@ export function useNotifications() {
         { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
         () => qc.invalidateQueries({ queryKey: ['notifications', user.id] })
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) console.warn('[realtime:notifications]', status, err);
+      });
     return () => {
       supabase.removeChannel(channel);
     };
