@@ -70,7 +70,9 @@ export function useRestaurantStats(restaurantId?: string) {
         },
         () => qc.invalidateQueries({ queryKey: ['restaurant-stats', restaurantId] })
       )
-      .subscribe();
+     .subscribe((status, err) => {
+        if (err) console.warn('[realtime:analytics]', status, err);
+      });
     return () => {
       supabase.removeChannel(channel);
     };
