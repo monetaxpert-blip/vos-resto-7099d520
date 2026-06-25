@@ -36,19 +36,10 @@ export function useNotifications() {
 
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-      .channel(`notif-${user.id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ['notifications', user.id] })
-      )
-      .subscribe((status, err) => {
-        if (err) console.warn('[realtime:notifications]', status, err);
-      });
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const interval = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ['notifications', user.id] });
+    }, 30000);
+    return () => clearInterval(interval);
   }, [user, qc]);
 
   const markRead = useMutation({
@@ -62,11 +53,7 @@ export function useNotifications() {
   const markAllRead = useMutation({
     mutationFn: async () => {
       if (!user) return;
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
+      const { error } = await supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications', user?.id] }),
@@ -74,6 +61,5 @@ export function useNotifications() {
 
   const items = query.data ?? [];
   const unreadCount = items.filter((n) => !n.is_read).length;
-
   return { items, unreadCount, isLoading: query.isLoading, markRead, markAllRead };
 }
