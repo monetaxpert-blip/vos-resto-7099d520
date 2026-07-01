@@ -13,6 +13,7 @@ import { avatarFor } from '@/lib/avatar';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
   const { user, signOut, loading, isAdmin, isRestaurantOwner } = useAuth();
   const { ids: favIds } = useFavorites();
   const { reservations } = useReservations();
