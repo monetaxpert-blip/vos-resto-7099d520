@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield, Bell, ShoppingBag } from 'lucide-react';
+import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield, Bell, ShoppingBag, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
