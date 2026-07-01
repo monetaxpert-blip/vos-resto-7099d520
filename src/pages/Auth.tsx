@@ -99,6 +99,10 @@ const Auth = () => {
         toast.error(secs
           ? `Trop de tentatives. Réessayez dans ${secs}s.`
           : 'Trop de tentatives, réessayez dans quelques secondes');
+      } else if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
+        toast.error('Email non confirmé. Vérifiez votre boîte de réception.');
+      } else if (msg.includes('pwned') || msg.includes('compromised') || msg.includes('leaked')) {
+        toast.error('Ce mot de passe est apparu dans une fuite de données. Choisissez-en un autre.');
       } else if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
         toast.error('Email ou mot de passe incorrect');
       } else if (msg.includes('already registered') || msg.includes('user already')) {
