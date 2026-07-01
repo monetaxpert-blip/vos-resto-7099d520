@@ -1,6 +1,9 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { initThemeEarly } from "./hooks/useTheme";
+
+initThemeEarly();
 
 // Guard: never register the PWA service worker inside Lovable's preview iframe
 const isInIframe = (() => {
