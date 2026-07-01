@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield, Bell, ShoppingBag } from 'lucide-react';
+import { User, LogOut, LogIn, Heart, Calendar, Map, ChevronRight, Store, Shield, Bell, ShoppingBag, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -12,6 +13,7 @@ import { avatarFor } from '@/lib/avatar';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
   const { user, signOut, loading, isAdmin, isRestaurantOwner } = useAuth();
   const { ids: favIds } = useFavorites();
   const { reservations } = useReservations();
@@ -149,6 +151,18 @@ const Profile = () => {
       </div>
 
       <div className="rounded-2xl bg-card shadow-card overflow-hidden">
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 p-4 border-b border-border/50 hover:bg-secondary/50 transition-colors"
+        >
+          {theme === 'dark' ? <Sun size={20} className="text-muted-foreground" /> : <Moon size={20} className="text-muted-foreground" />}
+          <span className="flex-1 text-left text-sm font-medium">
+            {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+          </span>
+          <span className="text-xs text-muted-foreground">{theme === 'dark' ? 'Sombre' : 'Clair'}</span>
+        </motion.button>
+
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/map')}

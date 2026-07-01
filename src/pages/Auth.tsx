@@ -70,6 +70,7 @@ const Auth = () => {
           email: cleanEmail,
           password,
           options: {
+            emailRedirectTo: `${window.location.origin}/`,
             data: {
               display_name: seed,
               first_name: displayName,
@@ -82,18 +83,8 @@ const Auth = () => {
         });
         if (signUpError) throw signUpError;
 
-        // Auto sign-in immediately (auto-confirm is enabled)
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password,
-        });
-        if (signInError) {
-          toast.success('Compte créé. Connecte-toi maintenant.');
-          setMode('signin');
-        } else {
-          await supabase.auth.getSession();
-          toast.success(role === 'restaurant' ? 'Bienvenue ! Configurons votre restaurant.' : 'Bienvenue 🎉');
-        }
+        toast.success('Compte créé. Vérifiez votre email pour l\'activer avant de vous connecter.');
+        setMode('signin');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) throw error;
@@ -108,6 +99,10 @@ const Auth = () => {
         toast.error(secs
           ? `Trop de tentatives. Réessayez dans ${secs}s.`
           : 'Trop de tentatives, réessayez dans quelques secondes');
+      } else if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
+        toast.error('Email non confirmé. Vérifiez votre boîte de réception.');
+      } else if (msg.includes('pwned') || msg.includes('compromised') || msg.includes('leaked')) {
+        toast.error('Ce mot de passe est apparu dans une fuite de données. Choisissez-en un autre.');
       } else if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
         toast.error('Email ou mot de passe incorrect');
       } else if (msg.includes('already registered') || msg.includes('user already')) {
