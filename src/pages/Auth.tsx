@@ -70,6 +70,7 @@ const Auth = () => {
           email: cleanEmail,
           password,
           options: {
+            emailRedirectTo: `${window.location.origin}/`,
             data: {
               display_name: seed,
               first_name: displayName,
@@ -82,17 +83,9 @@ const Auth = () => {
         });
         if (signUpError) throw signUpError;
 
-        // Auto sign-in immediately (auto-confirm is enabled)
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password,
-        });
-        if (signInError) {
-          toast.success('Compte créé. Connecte-toi maintenant.');
-          setMode('signin');
-        } else {
-          await supabase.auth.getSession();
-          toast.success(role === 'restaurant' ? 'Bienvenue ! Configurons votre restaurant.' : 'Bienvenue 🎉');
+        toast.success('Compte créé. Vérifiez votre email pour l\'activer avant de vous connecter.');
+        setMode('signin');
+        {
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
