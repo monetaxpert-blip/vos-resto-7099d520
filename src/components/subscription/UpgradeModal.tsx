@@ -40,6 +40,8 @@ const UpgradeModal = ({
   const { user } = useAuth();
   const [selected, setSelected] = useState<Plan>(initialPlan ?? currentPlan);
   const [loading, setLoading] = useState(false);
+  const [waveRef, setWaveRef] = useState('');
+  const [confirming, setConfirming] = useState(false);
 
   const plan = PLANS.find((p) => p.id === selected)!;
 
@@ -58,6 +60,48 @@ const UpgradeModal = ({
     }
     toast.success(`Plan ${selected} activé (mode test)`);
     onActivated?.();
+    onOpenChange(false);
+  };
+
+  const handleConfirmWave = async () => {
+    if (!user) return;
+    const ref = waveRef.trim();
+    if (!ref) {
+      toast.error('Saisissez la référence Wave');
+      return;
+    }
+    setConfirming(true);
+    const { data: owner } = await supabase
+      .from('restaurant_owners')
+      .select('restaurant_id')
+      .eq('id', ownershipId)
+      .maybeSingle();
+    if (!owner?.restaurant_id) {
+      setConfirming(false);
+      toast.error('Restaurant introuvable');
+      return;
+    }
+    const { error } = await (supabase as any).from('subscriptions').insert({
+      user_id: user.id,
+      restaurant_id: owner.restaurant_id,
+      plan: 'pro',
+      price: 10000,
+      status: 'pending',
+      payment_method: 'wave',
+      wave_reference: ref,
+    });
+    setConfirming(false);
+    if (error) {
+      toast.error("Impossible d'enregistrer la demande");
+      return;
+    }
+    // Set restaurant to pending if not already active
+    await supabase.from('restaurants')
+      .update({ status: 'pending' } as any)
+      .eq('id', owner.restaurant_id)
+      .neq('status', 'active');
+    toast.success('Demande envoyée, en attente de validation.');
+    setWaveRef('');
     onOpenChange(false);
   };
 
