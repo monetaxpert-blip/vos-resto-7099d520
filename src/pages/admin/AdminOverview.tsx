@@ -342,6 +342,18 @@ const PendingRestaurantsTable = () => {
                   <td className="px-4 py-3 text-xs">
                     <span className="inline-flex items-center gap-1 text-muted-foreground"><MapPin size={11} />{r.city ?? '—'}</span>
                   </td>
+                  <td className="px-4 py-3 text-xs">
+                    {r.waveReference ? (
+                      <button
+                        onClick={() => copyRef(r.waveReference!)}
+                        className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-1 rounded bg-muted hover:bg-muted/70 transition-colors"
+                        title="Copier la référence"
+                      >
+                        <Copy size={11} />
+                        <span className="truncate max-w-[110px]">{r.waveReference}</span>
+                      </button>
+                    ) : <span className="text-muted-foreground">—</span>}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1.5">
                       <button
