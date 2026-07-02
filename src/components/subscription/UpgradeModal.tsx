@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Info, Loader2 } from 'lucide-react';
+import { Check, Info, Loader2, ExternalLink } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,11 +9,16 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { PLANS, formatFCFA, type Plan } from '@/lib/subscription';
 import PaymentMethodsRow from './PaymentMethodsRow';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import waveLogo from '@/assets/wave-logo.png.asset.json';
+
+const WAVE_PAYMENT_URL = 'https://pay.wave.com/m/M_sn_UlFXA0KznC31/c/sn/?amount=10000';
 
 interface Props {
   open: boolean;
