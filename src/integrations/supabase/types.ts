@@ -583,6 +583,7 @@ export type Database = {
           rating: number | null
           rating_count: number
           social_media: Json | null
+          status: string
           updated_at: string
           website: string | null
           whatsapp_link: string | null
@@ -622,6 +623,7 @@ export type Database = {
           rating?: number | null
           rating_count?: number
           social_media?: Json | null
+          status?: string
           updated_at?: string
           website?: string | null
           whatsapp_link?: string | null
@@ -661,6 +663,7 @@ export type Database = {
           rating?: number | null
           rating_count?: number
           social_media?: Json | null
+          status?: string
           updated_at?: string
           website?: string | null
           whatsapp_link?: string | null
@@ -721,6 +724,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          payment_method: string
+          plan: string
+          price: number
+          requested_at: string
+          restaurant_id: string
+          status: string
+          updated_at: string
+          user_id: string
+          validated_at: string | null
+          wave_reference: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_method?: string
+          plan?: string
+          price?: number
+          requested_at?: string
+          restaurant_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          validated_at?: string | null
+          wave_reference?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_method?: string
+          plan?: string
+          price?: number
+          requested_at?: string
+          restaurant_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          validated_at?: string | null
+          wave_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

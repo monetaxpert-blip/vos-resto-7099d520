@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   Users, TrendingUp, Activity, Coins, UserPlus, AlertTriangle,
   Download, Store, CreditCard, ArrowUpRight, ArrowDownRight,
-  CheckCircle2, Check, X, MapPin, Phone, Loader2,
+  CheckCircle2, Check, X, MapPin, Phone, Loader2, Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -86,9 +86,9 @@ const useAdminMetrics = () => {
         ? (((newRestos7 ?? 0) - (newRestosPrev7 ?? 0)) / (newRestosPrev7 ?? 1)) * 100
         : null;
 
-      // À valider = restos inactifs (is_active=false)
+      // À valider = restos avec status='pending'
       const { count: pendingCount } = await supabase
-        .from('restaurants').select('*', { count: 'exact', head: true }).eq('is_active', false);
+        .from('restaurants').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
       // MRR : abonnements actifs démarrés dans le mois courant
       const { data: activeSubs } = await supabase
@@ -121,6 +121,7 @@ interface PendingRow {
   created_at: string;
   ownerName: string | null;
   ownerAvatar: string | null;
+  waveReference: string | null;
 }
 
 const usePendingRestaurants = () => {
@@ -130,13 +131,12 @@ const usePendingRestaurants = () => {
       const { data: restos, error } = await supabase
         .from('restaurants')
         .select('id, name, city, phone, profile_image, created_at')
-        .eq('is_active', false)
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
       if (error) throw error;
       const rows = (restos ?? []);
       if (rows.length === 0) return [];
 
-      // Fetch owners for these restaurants
       const ids = rows.map((r) => r.id);
       const { data: owners } = await supabase
         .from('restaurant_owners')
@@ -144,6 +144,19 @@ const usePendingRestaurants = () => {
         .in('restaurant_id', ids);
       const ownerByResto = new Map<string, string>();
       for (const o of owners ?? []) ownerByResto.set(o.restaurant_id, o.user_id);
+
+      // Latest pending wave reference per restaurant
+      const { data: subs } = await (supabase as any)
+        .from('subscriptions')
+        .select('restaurant_id, wave_reference, requested_at, status')
+        .in('restaurant_id', ids)
+        .order('requested_at', { ascending: false });
+      const waveByResto = new Map<string, string>();
+      for (const s of (subs ?? []) as Array<{ restaurant_id: string; wave_reference: string | null }>) {
+        if (!waveByResto.has(s.restaurant_id) && s.wave_reference) {
+          waveByResto.set(s.restaurant_id, s.wave_reference);
+        }
+      }
 
       const userIds = Array.from(new Set([...ownerByResto.values()]));
       let profiles: Array<{ id: string; display_name: string | null; avatar_url: string | null }> = [];
@@ -166,6 +179,7 @@ const usePendingRestaurants = () => {
           created_at: r.created_at,
           ownerName: prof?.display_name ?? null,
           ownerAvatar: prof?.avatar_url ?? null,
+          waveReference: waveByResto.get(r.id) ?? null,
         };
       });
     },
@@ -232,18 +246,33 @@ const PendingRestaurantsTable = () => {
   };
 
   const validate = async (id: string, name: string) => {
-    const { error } = await supabase.from('restaurants').update({ is_active: true }).eq('id', id);
+    const { error } = await supabase.from('restaurants').update({ status: 'active' } as any).eq('id', id);
     if (error) { toast.error('Erreur validation'); return; }
+    // Mark related pending subscription as active
+    await (supabase as any).from('subscriptions')
+      .update({ status: 'active', validated_at: new Date().toISOString() })
+      .eq('restaurant_id', id).eq('status', 'pending');
     toast.success(`Restaurant validé : ${name}`);
     refetchAll();
   };
 
   const refuse = async (id: string, name: string) => {
-    if (!confirm(`Refuser et supprimer l'inscription de « ${name} » ?`)) return;
-    const { error } = await supabase.from('restaurants').delete().eq('id', id);
+    if (!confirm(`Refuser l'inscription de « ${name} » ? Le restaurant sera masqué mais conservé.`)) return;
+    const { error } = await supabase.from('restaurants').update({ status: 'refused' } as any).eq('id', id);
     if (error) { toast.error('Erreur refus'); return; }
+    await (supabase as any).from('subscriptions')
+      .update({ status: 'refused' }).eq('restaurant_id', id).eq('status', 'pending');
     toast.success(`Restaurant refusé : ${name}`);
     refetchAll();
+  };
+
+  const copyRef = async (ref: string) => {
+    try {
+      await navigator.clipboard.writeText(ref);
+      toast.success('Référence copiée');
+    } catch {
+      toast.error('Impossible de copier');
+    }
   };
 
   return (
@@ -273,6 +302,7 @@ const PendingRestaurantsTable = () => {
                 <th className="text-left font-semibold px-4 py-2.5">Gérant</th>
                 <th className="text-left font-semibold px-4 py-2.5">Tél</th>
                 <th className="text-left font-semibold px-4 py-2.5">Ville</th>
+                <th className="text-left font-semibold px-4 py-2.5">Réf. Wave</th>
                 <th className="text-right font-semibold px-4 py-2.5">Action</th>
               </tr>
             </thead>
@@ -311,6 +341,18 @@ const PendingRestaurantsTable = () => {
                   </td>
                   <td className="px-4 py-3 text-xs">
                     <span className="inline-flex items-center gap-1 text-muted-foreground"><MapPin size={11} />{r.city ?? '—'}</span>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {r.waveReference ? (
+                      <button
+                        onClick={() => copyRef(r.waveReference!)}
+                        className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-1 rounded bg-muted hover:bg-muted/70 transition-colors"
+                        title="Copier la référence"
+                      >
+                        <Copy size={11} />
+                        <span className="truncate max-w-[110px]">{r.waveReference}</span>
+                      </button>
+                    ) : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1.5">
