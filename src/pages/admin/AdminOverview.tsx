@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   Users, TrendingUp, Activity, Coins, UserPlus, AlertTriangle,
   Download, Store, CreditCard, ArrowUpRight, ArrowDownRight,
-  CheckCircle2, Check, X, MapPin, Phone, Loader2,
+  CheckCircle2, Check, X, MapPin, Phone, Loader2, Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
