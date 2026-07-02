@@ -174,12 +174,61 @@ const UpgradeModal = ({
           <PaymentMethodsRow />
         </div>
 
+        {/* Wave payment card */}
+        <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-sky-50 to-white dark:from-sky-950/30 dark:to-transparent p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="font-extrabold text-sm">Passer au plan PRO</p>
+              <p className="text-[11px] text-muted-foreground">10 000 FCFA/mois</p>
+            </div>
+            <img src={waveLogo.url} alt="Wave" className="h-8 w-auto" />
+          </div>
+          <ul className="space-y-1">
+            {(PLANS.find(p => p.id === 'PRO')?.features ?? ['Visibilité illimitée', 'Support prioritaire', 'Stats avancées']).map((f) => (
+              <li key={f} className="flex items-start gap-2 text-xs">
+                <Check size={13} className="text-primary mt-0.5 shrink-0" />
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+          <a
+            href={WAVE_PAYMENT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full inline-flex items-center justify-center gap-2 h-10 rounded-lg bg-[#00D3FF] hover:bg-[#00b8e0] text-black font-bold text-sm transition-colors"
+          >
+            <img src={waveLogo.url} alt="" className="h-5 w-auto" />
+            Payer avec Wave
+            <ExternalLink size={14} />
+          </a>
+
+          <div className="space-y-1.5 pt-1">
+            <Label htmlFor="wave-ref" className="text-xs font-semibold">Référence de transaction Wave</Label>
+            <Input
+              id="wave-ref"
+              value={waveRef}
+              onChange={(e) => setWaveRef(e.target.value)}
+              placeholder="Ex: TXN-XXXXXXXXXX (reçue par SMS après paiement)"
+              className="h-9 text-sm"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Vous trouverez cette référence dans le SMS de confirmation envoyé par Wave après votre paiement.
+            </p>
+            <Button
+              onClick={handleConfirmWave}
+              disabled={confirming || !waveRef.trim()}
+              className="w-full font-bold mt-1"
+            >
+              {confirming && <Loader2 size={16} className="animate-spin" />}
+              Confirmer le paiement
+            </Button>
+          </div>
+        </div>
+
         <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-3 flex gap-2">
           <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
           <p className="text-xs text-amber-900 dark:text-amber-200">
-            Les paiements ne sont pas encore activés. Cette fonctionnalité sera
-            bientôt disponible. En attendant, vous pouvez activer votre plan en
-            mode test.
+            Vous pouvez aussi activer votre plan en mode test en attendant la validation.
           </p>
         </div>
 
@@ -187,6 +236,7 @@ const UpgradeModal = ({
           <Button
             onClick={handleActivateTest}
             disabled={loading}
+            variant="outline"
             className="w-full font-bold"
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
