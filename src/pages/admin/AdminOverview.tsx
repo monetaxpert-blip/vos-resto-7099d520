@@ -302,6 +302,7 @@ const PendingRestaurantsTable = () => {
                 <th className="text-left font-semibold px-4 py-2.5">Gérant</th>
                 <th className="text-left font-semibold px-4 py-2.5">Tél</th>
                 <th className="text-left font-semibold px-4 py-2.5">Ville</th>
+                <th className="text-left font-semibold px-4 py-2.5">Réf. Wave</th>
                 <th className="text-right font-semibold px-4 py-2.5">Action</th>
               </tr>
             </thead>
