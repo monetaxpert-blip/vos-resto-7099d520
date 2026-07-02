@@ -86,9 +86,9 @@ const useAdminMetrics = () => {
         ? (((newRestos7 ?? 0) - (newRestosPrev7 ?? 0)) / (newRestosPrev7 ?? 1)) * 100
         : null;
 
-      // À valider = restos inactifs (is_active=false)
+      // À valider = restos avec status='pending'
       const { count: pendingCount } = await supabase
-        .from('restaurants').select('*', { count: 'exact', head: true }).eq('is_active', false);
+        .from('restaurants').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
       // MRR : abonnements actifs démarrés dans le mois courant
       const { data: activeSubs } = await supabase
