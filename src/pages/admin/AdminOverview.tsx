@@ -246,18 +246,33 @@ const PendingRestaurantsTable = () => {
   };
 
   const validate = async (id: string, name: string) => {
-    const { error } = await supabase.from('restaurants').update({ is_active: true }).eq('id', id);
+    const { error } = await supabase.from('restaurants').update({ status: 'active' } as any).eq('id', id);
     if (error) { toast.error('Erreur validation'); return; }
+    // Mark related pending subscription as active
+    await (supabase as any).from('subscriptions')
+      .update({ status: 'active', validated_at: new Date().toISOString() })
+      .eq('restaurant_id', id).eq('status', 'pending');
     toast.success(`Restaurant validé : ${name}`);
     refetchAll();
   };
 
   const refuse = async (id: string, name: string) => {
-    if (!confirm(`Refuser et supprimer l'inscription de « ${name} » ?`)) return;
-    const { error } = await supabase.from('restaurants').delete().eq('id', id);
+    if (!confirm(`Refuser l'inscription de « ${name} » ? Le restaurant sera masqué mais conservé.`)) return;
+    const { error } = await supabase.from('restaurants').update({ status: 'refused' } as any).eq('id', id);
     if (error) { toast.error('Erreur refus'); return; }
+    await (supabase as any).from('subscriptions')
+      .update({ status: 'refused' }).eq('restaurant_id', id).eq('status', 'pending');
     toast.success(`Restaurant refusé : ${name}`);
     refetchAll();
+  };
+
+  const copyRef = async (ref: string) => {
+    try {
+      await navigator.clipboard.writeText(ref);
+      toast.success('Référence copiée');
+    } catch {
+      toast.error('Impossible de copier');
+    }
   };
 
   return (
