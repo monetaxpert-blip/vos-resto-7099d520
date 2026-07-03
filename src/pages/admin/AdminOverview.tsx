@@ -449,7 +449,7 @@ const AdminOverview = () => {
     { label: 'MAU', value: isLoading ? '…' : fmtNum(m?.mau ?? 0), icon: Users, subtitle: '30 derniers jours' },
     { label: 'WAU', value: isLoading ? '…' : fmtNum(m?.wau ?? 0), icon: Activity, delta: m?.wauDelta ?? null, subtitle: 'vs 7j précédents' },
     { label: 'Rétention J30', value: 'N/A', icon: TrendingUp, subtitle: 'tracking à ajouter' },
-    { label: 'MRR', value: isLoading ? '…' : fmtFCFA(m?.mrr ?? 0), icon: Coins, subtitle: 'mois en cours' },
+    { label: 'MRR', value: isLoading ? '…' : fmtFCFA(m?.mrr ?? 0), icon: Coins, subtitle: 'abonnements actifs' },
     { label: 'Nouveaux J7', value: isLoading ? '…' : fmtNum(m?.newRestos7 ?? 0), icon: UserPlus, delta: m?.newDelta ?? null, subtitle: 'vs 7j précédents' },
     { label: 'À Valider', value: isLoading ? '…' : fmtNum(m?.pendingCount ?? 0), icon: AlertTriangle, urgent: (m?.pendingCount ?? 0) > 0, subtitle: 'restaurants en attente' },
   ]), [m, isLoading]);
