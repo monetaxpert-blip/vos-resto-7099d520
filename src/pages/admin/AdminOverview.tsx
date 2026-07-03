@@ -86,17 +86,26 @@ const useAdminMetrics = () => {
         ? (((newRestos7 ?? 0) - (newRestosPrev7 ?? 0)) / (newRestosPrev7 ?? 1)) * 100
         : null;
 
-      // À valider = restos avec status='pending'
-      const { count: pendingCount } = await supabase
-        .from('restaurants').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+      // À valider : union restaurants(status='pending') ∪ subscriptions(status='pending')
+      const [pendingRestos, pendingSubs] = await Promise.all([
+        supabase.from('restaurants').select('id').eq('status', 'pending'),
+        (supabase as any).from('subscriptions').select('restaurant_id').eq('status', 'pending'),
+      ]);
+      const pendingSet = new Set<string>();
+      for (const r of (pendingRestos.data ?? []) as Array<{ id: string }>) pendingSet.add(r.id);
+      for (const s of (pendingSubs.data ?? []) as Array<{ restaurant_id: string }>) pendingSet.add(s.restaurant_id);
+      const pendingCount = pendingSet.size;
 
-      // MRR : abonnements actifs démarrés dans le mois courant
-      const { data: activeSubs } = await supabase
-        .from('restaurant_owners')
-        .select('subscription_started_at, status')
-        .eq('status', 'active')
-        .gte('subscription_started_at', monthStart);
-      const mrr = (activeSubs?.length ?? 0) * PRO_PRICE;
+      // MRR : union restaurant_owners(status='active') ∪ subscriptions(status='active'), dédupliqué par restaurant_id
+      const [ownersActive, subsActive] = await Promise.all([
+        supabase.from('restaurant_owners').select('restaurant_id').eq('status', 'active'),
+        (supabase as any).from('subscriptions').select('restaurant_id').eq('status', 'active'),
+      ]);
+      const activeSet = new Set<string>();
+      for (const o of (ownersActive.data ?? []) as Array<{ restaurant_id: string }>) if (o.restaurant_id) activeSet.add(o.restaurant_id);
+      for (const s of (subsActive.data ?? []) as Array<{ restaurant_id: string }>) if (s.restaurant_id) activeSet.add(s.restaurant_id);
+      const mrr = activeSet.size * PRO_PRICE;
+      void monthStart; // conservé pour compat éventuelle
 
       return {
         mau,
@@ -104,7 +113,7 @@ const useAdminMetrics = () => {
         wauDelta,
         newRestos7: newRestos7 ?? 0,
         newDelta,
-        pendingCount: pendingCount ?? 0,
+        pendingCount,
         mrr,
       };
     },
@@ -128,13 +137,33 @@ const usePendingRestaurants = () => {
   return useQuery({
     queryKey: ['admin', 'pending-restaurants'],
     queryFn: async (): Promise<PendingRow[]> => {
-      const { data: restos, error } = await supabase
+      // Source 1 — restaurants directement en statut 'pending'
+      const { data: restosPending, error } = await supabase
         .from('restaurants')
-        .select('id, name, city, phone, profile_image, created_at')
+        .select('id, name, city, phone, profile_image, created_at, status')
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      const rows = (restos ?? []);
+
+      // Source 2 — restaurants référencés par une souscription Wave 'pending'
+      const { data: subsPending } = await (supabase as any)
+        .from('subscriptions')
+        .select('restaurant_id')
+        .eq('status', 'pending');
+      const subRestoIds = Array.from(
+        new Set(((subsPending ?? []) as Array<{ restaurant_id: string }>).map((s) => s.restaurant_id).filter(Boolean))
+      );
+      const knownIds = new Set((restosPending ?? []).map((r) => r.id));
+      const missingIds = subRestoIds.filter((id) => !knownIds.has(id));
+      let extraRestos: typeof restosPending = [];
+      if (missingIds.length > 0) {
+        const { data } = await supabase
+          .from('restaurants')
+          .select('id, name, city, phone, profile_image, created_at, status')
+          .in('id', missingIds);
+        extraRestos = data ?? [];
+      }
+      const rows = [...(restosPending ?? []), ...(extraRestos ?? [])];
       if (rows.length === 0) return [];
 
       const ids = rows.map((r) => r.id);
@@ -420,7 +449,7 @@ const AdminOverview = () => {
     { label: 'MAU', value: isLoading ? '…' : fmtNum(m?.mau ?? 0), icon: Users, subtitle: '30 derniers jours' },
     { label: 'WAU', value: isLoading ? '…' : fmtNum(m?.wau ?? 0), icon: Activity, delta: m?.wauDelta ?? null, subtitle: 'vs 7j précédents' },
     { label: 'Rétention J30', value: 'N/A', icon: TrendingUp, subtitle: 'tracking à ajouter' },
-    { label: 'MRR', value: isLoading ? '…' : fmtFCFA(m?.mrr ?? 0), icon: Coins, subtitle: 'mois en cours' },
+    { label: 'MRR', value: isLoading ? '…' : fmtFCFA(m?.mrr ?? 0), icon: Coins, subtitle: 'abonnements actifs' },
     { label: 'Nouveaux J7', value: isLoading ? '…' : fmtNum(m?.newRestos7 ?? 0), icon: UserPlus, delta: m?.newDelta ?? null, subtitle: 'vs 7j précédents' },
     { label: 'À Valider', value: isLoading ? '…' : fmtNum(m?.pendingCount ?? 0), icon: AlertTriangle, urgent: (m?.pendingCount ?? 0) > 0, subtitle: 'restaurants en attente' },
   ]), [m, isLoading]);
