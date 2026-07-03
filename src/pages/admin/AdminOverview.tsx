@@ -137,13 +137,33 @@ const usePendingRestaurants = () => {
   return useQuery({
     queryKey: ['admin', 'pending-restaurants'],
     queryFn: async (): Promise<PendingRow[]> => {
-      const { data: restos, error } = await supabase
+      // Source 1 — restaurants directement en statut 'pending'
+      const { data: restosPending, error } = await supabase
         .from('restaurants')
-        .select('id, name, city, phone, profile_image, created_at')
+        .select('id, name, city, phone, profile_image, created_at, status')
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      const rows = (restos ?? []);
+
+      // Source 2 — restaurants référencés par une souscription Wave 'pending'
+      const { data: subsPending } = await (supabase as any)
+        .from('subscriptions')
+        .select('restaurant_id')
+        .eq('status', 'pending');
+      const subRestoIds = Array.from(
+        new Set(((subsPending ?? []) as Array<{ restaurant_id: string }>).map((s) => s.restaurant_id).filter(Boolean))
+      );
+      const knownIds = new Set((restosPending ?? []).map((r) => r.id));
+      const missingIds = subRestoIds.filter((id) => !knownIds.has(id));
+      let extraRestos: typeof restosPending = [];
+      if (missingIds.length > 0) {
+        const { data } = await supabase
+          .from('restaurants')
+          .select('id, name, city, phone, profile_image, created_at, status')
+          .in('id', missingIds);
+        extraRestos = data ?? [];
+      }
+      const rows = [...(restosPending ?? []), ...(extraRestos ?? [])];
       if (rows.length === 0) return [];
 
       const ids = rows.map((r) => r.id);
