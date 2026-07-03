@@ -86,17 +86,26 @@ const useAdminMetrics = () => {
         ? (((newRestos7 ?? 0) - (newRestosPrev7 ?? 0)) / (newRestosPrev7 ?? 1)) * 100
         : null;
 
-      // À valider = restos avec status='pending'
-      const { count: pendingCount } = await supabase
-        .from('restaurants').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+      // À valider : union restaurants(status='pending') ∪ subscriptions(status='pending')
+      const [pendingRestos, pendingSubs] = await Promise.all([
+        supabase.from('restaurants').select('id').eq('status', 'pending'),
+        (supabase as any).from('subscriptions').select('restaurant_id').eq('status', 'pending'),
+      ]);
+      const pendingSet = new Set<string>();
+      for (const r of (pendingRestos.data ?? []) as Array<{ id: string }>) pendingSet.add(r.id);
+      for (const s of (pendingSubs.data ?? []) as Array<{ restaurant_id: string }>) pendingSet.add(s.restaurant_id);
+      const pendingCount = pendingSet.size;
 
-      // MRR : abonnements actifs démarrés dans le mois courant
-      const { data: activeSubs } = await supabase
-        .from('restaurant_owners')
-        .select('subscription_started_at, status')
-        .eq('status', 'active')
-        .gte('subscription_started_at', monthStart);
-      const mrr = (activeSubs?.length ?? 0) * PRO_PRICE;
+      // MRR : union restaurant_owners(status='active') ∪ subscriptions(status='active'), dédupliqué par restaurant_id
+      const [ownersActive, subsActive] = await Promise.all([
+        supabase.from('restaurant_owners').select('restaurant_id').eq('status', 'active'),
+        (supabase as any).from('subscriptions').select('restaurant_id').eq('status', 'active'),
+      ]);
+      const activeSet = new Set<string>();
+      for (const o of (ownersActive.data ?? []) as Array<{ restaurant_id: string }>) if (o.restaurant_id) activeSet.add(o.restaurant_id);
+      for (const s of (subsActive.data ?? []) as Array<{ restaurant_id: string }>) if (s.restaurant_id) activeSet.add(s.restaurant_id);
+      const mrr = activeSet.size * PRO_PRICE;
+      void monthStart; // conservé pour compat éventuelle
 
       return {
         mau,
@@ -104,7 +113,7 @@ const useAdminMetrics = () => {
         wauDelta,
         newRestos7: newRestos7 ?? 0,
         newDelta,
-        pendingCount: pendingCount ?? 0,
+        pendingCount,
         mrr,
       };
     },
