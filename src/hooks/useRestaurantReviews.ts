@@ -66,10 +66,28 @@ export function useRestaurantReviews(restaurantId?: string) {
     onError: (error) => toast.error(error instanceof Error ? error.message : 'Erreur avis utile'),
   });
 
+  /** Edit an own review via the update_review RPC (rating + comment only). */
+  const update = useMutation({
+    mutationFn: async (payload: { review_id: string; rating: number; comment: string }) => {
+      const { data, error } = await supabase.rpc('update_review', {
+        p_review_id: payload.review_id,
+        p_rating: payload.rating,
+        p_comment: payload.comment,
+      });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string };
+      if (!result?.success) throw new Error(result?.error ?? 'Mise à jour impossible');
+    },
+    onSuccess: invalidate,
+    onError: (error) => toast.error(error instanceof Error ? error.message : 'Erreur modification avis'),
+  });
+
   return {
     reviews: query.data ?? [],
     isLoading: query.isLoading,
     create,
     markHelpful,
+    update,
   };
 }
+
