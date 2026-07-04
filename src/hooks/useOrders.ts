@@ -144,3 +144,22 @@ export function useUpdateOrderStatus() {
     },
   });
 }
+
+/** Client-side cancel of an own pending order — uses the cancel_order RPC
+ *  so no direct UPDATE policy is required on public.orders. */
+export function useCancelOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data, error } = await supabase.rpc('cancel_order', { p_order_id: orderId });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string };
+      if (!result?.success) throw new Error(result?.error ?? 'Annulation impossible');
+      return orderId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ordersKeys.all });
+    },
+  });
+}
+

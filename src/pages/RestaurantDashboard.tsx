@@ -97,11 +97,17 @@ const RestaurantDashboard = () => {
             <TriangleAlert size={11} /> S'abonner
           </button>
         )}
+        {inTrial && !trialEndingSoon && (
+          <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: 'PRO' })} className="w-full rounded-lg border border-primary/40 bg-primary/10 text-primary px-3 py-1.5 text-[11px] font-bold hover:bg-primary/15">
+            S'abonner maintenant
+          </button>
+        )}
         {subEndingSoon && (
           <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: ownership.plan })} className="w-full rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold flex items-center justify-center gap-1">
             <TriangleAlert size={11} /> Renouveler
           </button>
         )}
+
         {!active && ownership.status !== 'active' && PLANS[0] && (
           <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: 'PRO' })} className="w-full rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-[11px] font-bold">
             {PLANS[0].name} · {formatFCFA(PLANS[0].price)}/mois

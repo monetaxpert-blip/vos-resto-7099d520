@@ -808,6 +808,7 @@ export type Database = {
         Args: { p_ownership_id: string; p_plan: string }
         Returns: Json
       }
+      cancel_order: { Args: { p_order_id: string }; Returns: Json }
       create_restaurant_with_owner: {
         Args: {
           p_address?: string
@@ -833,6 +834,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      update_review: {
+        Args: { p_comment: string; p_rating: number; p_review_id: string }
+        Returns: Json
       }
       user_owns_restaurant: {
         Args: { _restaurant_id: string }
