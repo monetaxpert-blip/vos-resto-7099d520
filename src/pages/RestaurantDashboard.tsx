@@ -76,6 +76,9 @@ const RestaurantDashboard = () => {
     const subDays = subscriptionDaysLeft(ownership.subscription_ends_at);
     const trialEndingSoon = inTrial && daysLeft <= 7;
     const subEndingSoon = ownership.status === 'active' && subDays !== null && subDays <= 7;
+    const openUpgrade = (initial: Plan = 'PRO') =>
+      setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial });
+
     return (
       <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2 shadow-sm">
         <div className="flex items-center justify-between gap-2">
@@ -86,34 +89,61 @@ const RestaurantDashboard = () => {
             {active ? ownership.plan : 'Expiré'}
           </span>
         </div>
+
+        {/* 1. TRIAL — always show a PRO upgrade button, styled by urgency */}
         {inTrial && (
-          <p className="flex items-center gap-1.5 text-xs font-semibold text-primary"><Clock size={11} /> {daysLeft} j d'essai</p>
-        )}
-        {ownership.status === 'active' && subDays !== null && (
-          <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700"><Check size={11} /> {subDays} j restants</p>
-        )}
-        {trialEndingSoon && (
-          <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: 'PRO' })} className="w-full rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold flex items-center justify-center gap-1">
-            <TriangleAlert size={11} /> S'abonner
-          </button>
-        )}
-        {inTrial && !trialEndingSoon && (
-          <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: 'PRO' })} className="w-full rounded-lg border border-primary/40 bg-primary/10 text-primary px-3 py-1.5 text-[11px] font-bold hover:bg-primary/15">
-            S'abonner maintenant
-          </button>
-        )}
-        {subEndingSoon && (
-          <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: ownership.plan })} className="w-full rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold flex items-center justify-center gap-1">
-            <TriangleAlert size={11} /> Renouveler
-          </button>
+          <>
+            <p className={`flex items-center gap-1.5 text-xs font-semibold ${trialEndingSoon ? 'text-destructive' : 'text-primary'}`}>
+              <Clock size={11} /> {daysLeft} j d'essai restants
+            </p>
+            {trialEndingSoon ? (
+              <button
+                onClick={() => openUpgrade('PRO')}
+                className="w-full rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold flex items-center justify-center gap-1"
+              >
+                <TriangleAlert size={11} /> Passer au plan PRO
+              </button>
+            ) : (
+              <button
+                onClick={() => openUpgrade('PRO')}
+                className="w-full rounded-lg border border-primary/40 bg-primary/10 text-primary px-3 py-1.5 text-[11px] font-bold hover:bg-primary/15"
+              >
+                Passer au plan PRO
+              </button>
+            )}
+          </>
         )}
 
+        {/* 2. ACTIVE — always show remaining days + a Renouveler button */}
+        {ownership.status === 'active' && active && (
+          <>
+            <p className={`flex items-center gap-1.5 text-xs font-semibold ${subEndingSoon ? 'text-destructive' : 'text-emerald-700'}`}>
+              <Check size={11} /> Abonnement actif{subDays !== null ? ` · ${subDays} jour${subDays > 1 ? 's' : ''} restant${subDays > 1 ? 's' : ''}` : ''}
+            </p>
+            <button
+              onClick={() => openUpgrade(ownership.plan)}
+              className={
+                subEndingSoon
+                  ? 'w-full rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold flex items-center justify-center gap-1'
+                  : 'w-full rounded-lg border border-emerald-500/40 bg-emerald-50 text-emerald-700 px-3 py-1.5 text-[11px] font-bold hover:bg-emerald-100'
+              }
+            >
+              {subEndingSoon && <TriangleAlert size={11} />} Renouveler votre abonnement
+            </button>
+          </>
+        )}
+
+        {/* 3. PENDING / REFUSED / SUSPENDED / EXPIRED — recovery action */}
         {!active && ownership.status !== 'active' && PLANS[0] && (
-          <button onClick={() => setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial: 'PRO' })} className="w-full rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-[11px] font-bold">
+          <button
+            onClick={() => openUpgrade('PRO')}
+            className="w-full rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-[11px] font-bold"
+          >
             {PLANS[0].name} · {formatFCFA(PLANS[0].price)}/mois
           </button>
         )}
       </div>
+
     );
   };
 
