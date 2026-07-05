@@ -808,7 +808,12 @@ export type Database = {
         Args: { p_ownership_id: string; p_plan: string }
         Returns: Json
       }
+      admin_activate_subscription: {
+        Args: { p_restaurant_id: string }
+        Returns: Json
+      }
       cancel_order: { Args: { p_order_id: string }; Returns: Json }
+      check_and_expire_trials: { Args: never; Returns: number }
       create_restaurant_with_owner: {
         Args: {
           p_address?: string
@@ -820,6 +825,11 @@ export type Database = {
           p_quartier?: string
         }
         Returns: Json
+      }
+      expire_my_trials: { Args: never; Returns: undefined }
+      expire_trial_if_due: {
+        Args: { p_restaurant_id: string }
+        Returns: undefined
       }
       get_public_plans: {
         Args: never
