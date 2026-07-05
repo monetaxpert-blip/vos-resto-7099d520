@@ -275,6 +275,9 @@ const RestaurantDashboard = () => {
             </div>
           </div>
 
+          {/* Subscription status banner */}
+          {renderStatusBanner()}
+
           {/* Content */}
           <div className="p-4 md:p-8">
             {selected?.restaurant && (
