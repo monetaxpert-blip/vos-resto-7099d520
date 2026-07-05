@@ -67,7 +67,7 @@ const RestaurantDashboard = () => {
     return 0;
   };
 
-  const renderStatusBlock = () => {
+  const renderStatusBanner = () => {
     if (!selected) return null;
     const ownership = selected.ownership;
     const active = isAccessActive(ownership);
@@ -79,71 +79,75 @@ const RestaurantDashboard = () => {
     const openUpgrade = (initial: Plan = 'PRO') =>
       setModal({ ownershipKey: ownership.restaurant_id, current: ownership.plan, initial });
 
-    return (
-      <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-            {ownership.status === 'active' ? 'Abonnement' : inTrial ? 'Essai' : 'Accès'}
-          </p>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-            {active ? ownership.plan : 'Expiré'}
-          </span>
-        </div>
+    // Tint + text/button per state
+    let tint = 'bg-primary/10 border-primary/20';
+    let leftIcon = <Clock size={14} className="text-primary" />;
+    let leftText: React.ReactNode = null;
+    let button: React.ReactNode = null;
 
-        {/* 1. TRIAL — always show a PRO upgrade button, styled by urgency */}
-        {inTrial && (
-          <>
-            <p className={`flex items-center gap-1.5 text-xs font-semibold ${trialEndingSoon ? 'text-destructive' : 'text-primary'}`}>
-              <Clock size={11} /> {daysLeft} j d'essai restants
-            </p>
-            {trialEndingSoon ? (
-              <button
-                onClick={() => openUpgrade('PRO')}
-                className="w-full rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold flex items-center justify-center gap-1"
-              >
-                <TriangleAlert size={11} /> Passer au plan PRO
-              </button>
-            ) : (
-              <button
-                onClick={() => openUpgrade('PRO')}
-                className="w-full rounded-lg border border-primary/40 bg-primary/10 text-primary px-3 py-1.5 text-[11px] font-bold hover:bg-primary/15"
-              >
-                Passer au plan PRO
-              </button>
-            )}
-          </>
-        )}
-
-        {/* 2. ACTIVE — always show remaining days + a Renouveler button */}
-        {ownership.status === 'active' && active && (
-          <>
-            <p className={`flex items-center gap-1.5 text-xs font-semibold ${subEndingSoon ? 'text-destructive' : 'text-emerald-700'}`}>
-              <Check size={11} /> Abonnement actif{subDays !== null ? ` · ${subDays} jour${subDays > 1 ? 's' : ''} restant${subDays > 1 ? 's' : ''}` : ''}
-            </p>
-            <button
-              onClick={() => openUpgrade(ownership.plan)}
-              className={
-                subEndingSoon
-                  ? 'w-full rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-[11px] font-bold flex items-center justify-center gap-1'
-                  : 'w-full rounded-lg border border-emerald-500/40 bg-emerald-50 text-emerald-700 px-3 py-1.5 text-[11px] font-bold hover:bg-emerald-100'
-              }
-            >
-              {subEndingSoon && <TriangleAlert size={11} />} Renouveler votre abonnement
-            </button>
-          </>
-        )}
-
-        {/* 3. PENDING / REFUSED / SUSPENDED / EXPIRED — recovery action */}
-        {!active && ownership.status !== 'active' && PLANS[0] && (
-          <button
-            onClick={() => openUpgrade('PRO')}
-            className="w-full rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-[11px] font-bold"
-          >
-            {PLANS[0].name} · {formatFCFA(PLANS[0].price)}/mois
+    if (inTrial) {
+      if (trialEndingSoon) {
+        tint = 'bg-destructive/10 border-destructive/30';
+        leftIcon = <TriangleAlert size={14} className="text-destructive" />;
+        leftText = <span className="font-semibold text-destructive">Essai · {daysLeft} j restant{daysLeft > 1 ? 's' : ''}</span>;
+        button = (
+          <button onClick={() => openUpgrade('PRO')} className="rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-xs font-bold flex items-center gap-1 shrink-0">
+            <TriangleAlert size={12} /> Passer au plan PRO
           </button>
-        )}
-      </div>
+        );
+      } else {
+        tint = 'bg-primary/10 border-primary/20';
+        leftIcon = <Clock size={14} className="text-primary" />;
+        leftText = <span className="font-semibold text-primary">Essai · {daysLeft} jours restants</span>;
+        button = (
+          <button onClick={() => openUpgrade('PRO')} className="rounded-lg border border-primary/40 bg-primary/15 text-primary px-3 py-1.5 text-xs font-bold hover:bg-primary/25 shrink-0">
+            Passer au plan PRO
+          </button>
+        );
+      }
+    } else if (ownership.status === 'active' && active) {
+      if (subEndingSoon) {
+        tint = 'bg-destructive/10 border-destructive/30';
+        leftIcon = <TriangleAlert size={14} className="text-destructive" />;
+        leftText = <span className="font-semibold text-destructive">Abonnement · {subDays} jour{(subDays ?? 0) > 1 ? 's' : ''} restant{(subDays ?? 0) > 1 ? 's' : ''}</span>;
+        button = (
+          <button onClick={() => openUpgrade(ownership.plan)} className="rounded-lg bg-destructive text-destructive-foreground px-3 py-1.5 text-xs font-bold flex items-center gap-1 shrink-0">
+            <TriangleAlert size={12} /> Renouveler
+          </button>
+        );
+      } else {
+        tint = 'bg-emerald-500/10 border-emerald-500/20';
+        leftIcon = <Check size={14} className="text-emerald-700" />;
+        leftText = (
+          <span className="font-semibold text-emerald-700">
+            Abonnement actif{subDays !== null ? ` · ${subDays} jour${subDays > 1 ? 's' : ''} restant${subDays > 1 ? 's' : ''}` : ''}
+          </span>
+        );
+        button = (
+          <button onClick={() => openUpgrade(ownership.plan)} className="rounded-lg border border-emerald-500/40 bg-emerald-50 text-emerald-700 px-3 py-1.5 text-xs font-bold hover:bg-emerald-100 shrink-0">
+            Renouveler votre abonnement
+          </button>
+        );
+      }
+    } else if (!active && ownership.status !== 'active' && PLANS[0]) {
+      tint = 'bg-primary/10 border-primary/20';
+      leftIcon = <TriangleAlert size={14} className="text-primary" />;
+      leftText = <span className="font-semibold text-primary">Accès limité · {ownership.status}</span>;
+      button = (
+        <button onClick={() => openUpgrade('PRO')} className="rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-xs font-bold shrink-0">
+          {PLANS[0].name} · {formatFCFA(PLANS[0].price)}/mois
+        </button>
+      );
+    }
 
+    return (
+      <div className={`mx-4 md:mx-8 mt-4 rounded-xl border ${tint} px-4 py-2.5 flex items-center justify-between gap-3`}>
+        <div className="flex items-center gap-2 min-w-0 text-sm">
+          {leftIcon}
+          <div className="truncate">{leftText}</div>
+        </div>
+        {button}
+      </div>
     );
   };
 
@@ -241,8 +245,6 @@ const RestaurantDashboard = () => {
               );
             })}
           </nav>
-
-          {renderStatusBlock()}
         </aside>
 
         {/* Main */}
@@ -272,6 +274,9 @@ const RestaurantDashboard = () => {
               )}
             </div>
           </div>
+
+          {/* Subscription status banner */}
+          {renderStatusBanner()}
 
           {/* Content */}
           <div className="p-4 md:p-8">

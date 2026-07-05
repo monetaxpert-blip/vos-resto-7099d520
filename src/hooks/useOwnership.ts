@@ -18,6 +18,8 @@ export function useMyOwnerships() {
     queryKey: ownershipKeys.mine(user?.id),
     enabled: !!user,
     queryFn: async () => {
+      // Fire-and-forget: transition any of my expired trials before reading
+      await supabase.rpc('expire_my_trials' as any).then(() => {}, () => {});
       const { data, error } = await supabase
         .from('restaurant_owners')
         .select('*')
