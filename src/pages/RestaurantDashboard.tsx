@@ -245,8 +245,6 @@ const RestaurantDashboard = () => {
               );
             })}
           </nav>
-
-          {renderStatusBlock()}
         </aside>
 
         {/* Main */}
