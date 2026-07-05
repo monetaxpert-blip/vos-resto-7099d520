@@ -275,12 +275,11 @@ const PendingRestaurantsTable = () => {
   };
 
   const validate = async (id: string, name: string) => {
-    const { error } = await supabase.from('restaurants').update({ status: 'active' } as any).eq('id', id);
-    if (error) { toast.error('Erreur validation'); return; }
-    // Mark related pending subscription as active
-    await (supabase as any).from('subscriptions')
-      .update({ status: 'active', validated_at: new Date().toISOString() })
-      .eq('restaurant_id', id).eq('status', 'pending');
+    const { data, error } = await (supabase as any).rpc('admin_activate_subscription', { p_restaurant_id: id });
+    if (error || (data && data.success === false)) {
+      toast.error(data?.error ?? 'Erreur validation');
+      return;
+    }
     toast.success(`Restaurant validé : ${name}`);
     refetchAll();
   };
