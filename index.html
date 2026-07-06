@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
     <meta name="theme-color" content="#f97316" />
     <meta name="color-scheme" content="light" />
-    <title>Vos Resto · Restaurants à Dakar</title>
-    <meta name="description" content="Découvrez les meilleurs restaurants de Dakar, Sénégal. Explorez, réservez et savourez." />
+    <title>Vos Resto — Guide des restaurants à Dakar, Sénégal</title>
+    <meta name="description" content="Découvrez les meilleurs restaurants de Dakar : menus, réservations, itinéraires et offres. La marketplace des restaurants au Sénégal." />
     <meta name="author" content="Vos Resto" />
 
     <!-- PWA -->
@@ -19,15 +19,43 @@
     <meta name="apple-mobile-web-app-title" content="Vos Resto" />
     <meta name="format-detection" content="telephone=no" />
 
-    <!-- Open Graph -->
+    <!-- Open Graph (sitewide fallback for social crawlers that don't run JS) -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Vos Resto" />
-    <meta property="og:description" content="Découvrez les meilleurs restaurants de Dakar, Sénégal. Explorez, réservez et savourez." />
+    <meta property="og:site_name" content="Vos Resto" />
+    <meta property="og:title" content="Vos Resto — Guide des restaurants à Dakar" />
+    <meta property="og:description" content="Découvrez les meilleurs restaurants de Dakar : menus, réservations, itinéraires et offres." />
+    <meta property="og:url" content="https://vos-resto.lovable.app/" />
     <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/tHNcmRF2shhrVCoDF09hiXXXosI2/social-images/social-1776387113620-image_sociale_de_vos_resto" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Vos Resto" />
-    <meta name="twitter:description" content="Découvrez les meilleurs restaurants de Dakar, Sénégal. Explorez, réservez et savourez." />
+    <meta name="twitter:title" content="Vos Resto — Guide des restaurants à Dakar" />
+    <meta name="twitter:description" content="Découvrez les meilleurs restaurants de Dakar : menus, réservations, itinéraires et offres." />
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/tHNcmRF2shhrVCoDF09hiXXXosI2/social-images/social-1776387113620-image_sociale_de_vos_resto" />
+
+    <!-- Structured data: Organization + WebSite (sitewide) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Vos Resto",
+      "url": "https://vos-resto.lovable.app/",
+      "logo": "https://vos-resto.lovable.app/favicon.png",
+      "areaServed": "Dakar, Sénégal"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Vos Resto",
+      "url": "https://vos-resto.lovable.app/",
+      "inLanguage": "fr",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://vos-resto.lovable.app/search?query={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
