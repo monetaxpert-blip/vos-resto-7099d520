@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, Phone, Globe, MapPin, Clock, ExternalLink, Wallet, Heart, Map as MapIcon, Loader2, ShoppingBag, Sparkles } from 'lucide-react';
 import { useRestaurantById, useDBRestaurants } from '@/hooks/useDBRestaurants';
 import { useAuth } from '@/contexts/AuthContext';
@@ -145,8 +146,51 @@ const RestaurantDetail = () => {
   })();
   const fav = isFavorite(restaurant.id);
 
+  const pageUrl = `https://vos-resto.lovable.app/restaurant/${restaurant.id}`;
+  const metaTitleFull = `${restaurant.name} — Restaurant à ${restaurant.quartier || restaurant.city} | Vos Resto`;
+  const metaTitle = metaTitleFull.length > 60 ? `${restaurant.name} — Vos Resto` : metaTitleFull;
+  const metaDesc = (restaurant.description && restaurant.description.length >= 50
+    ? restaurant.description
+    : `${restaurant.name} à ${restaurant.quartier || restaurant.city}. ${restaurant.categories.slice(0, 3).join(', ')}. Menu, réservation et itinéraire sur Vos Resto.`
+  ).slice(0, 160);
+  const restaurantSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Restaurant',
+    name: restaurant.name,
+    url: pageUrl,
+    image: restaurant.heroPhotoUrl || restaurant.profileImage || undefined,
+    telephone: restaurant.phone || undefined,
+    servesCuisine: restaurant.categories,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: restaurant.address || undefined,
+      addressLocality: restaurant.quartier || restaurant.city,
+      addressRegion: 'Dakar',
+      addressCountry: 'SN',
+    },
+    ...(restaurant.lat && restaurant.lng
+      ? { geo: { '@type': 'GeoCoordinates', latitude: restaurant.lat, longitude: restaurant.lng } }
+      : {}),
+    ...(restaurant.rating
+      ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: restaurant.rating, reviewCount: restaurant.ratingCount || 1 } }
+      : {}),
+  };
+
   return (
     <div className="min-h-screen pb-32 bg-background">
+      <Helmet>
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDesc} />
+        <link rel="canonical" href={pageUrl} />
+        <meta property="og:type" content="restaurant.restaurant" />
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDesc} />
+        <meta property="og:url" content={pageUrl} />
+        {(restaurant.heroPhotoUrl || restaurant.profileImage) && (
+          <meta property="og:image" content={restaurant.heroPhotoUrl || restaurant.profileImage} />
+        )}
+        <script type="application/ld+json">{JSON.stringify(restaurantSchema)}</script>
+      </Helmet>
       {/* Hero gallery — swipeable carousel with side-peek */}
       <div className="relative h-72 overflow-hidden bg-secondary">
         <Carousel opts={{ loop: false, align: 'start', dragFree: false }} setApi={setCarouselApi} className="h-full">
