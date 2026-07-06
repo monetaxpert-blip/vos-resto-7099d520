@@ -12,3 +12,14 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /restaurant/dashboard
+Disallow: /restaurant/onboarding
+Disallow: /auth
+Disallow: /profile
+Disallow: /notifications
+Disallow: /orders
+Disallow: /favorites
+
+Sitemap: https://vos-resto.lovable.app/sitemap.xml

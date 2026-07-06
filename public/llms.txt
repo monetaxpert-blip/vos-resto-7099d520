@@ -1,0 +1,16 @@
+# Vos Resto
+
+> Marketplace des restaurants au Sénégal : découvrez, réservez et commandez dans les meilleurs restaurants de Dakar.
+
+Vos Resto est un guide et une plateforme de réservation/commande dédiés aux restaurants de Dakar et du Sénégal. Les utilisateurs peuvent explorer les restaurants par quartier ou par type de cuisine, consulter les menus, réserver une table, commander en ligne et laisser des avis.
+
+## Pages
+
+- [Accueil](/): Découvrir les restaurants recommandés à Dakar.
+- [Recherche](/search): Rechercher des restaurants par nom, cuisine, quartier ou budget.
+- [Carte](/map): Voir tous les restaurants sur une carte de Dakar.
+
+## Optional
+
+- [Favoris](/favorites): Retrouver ses restaurants favoris (session requise).
+- [Profil](/profile): Gérer son compte (session requise).
