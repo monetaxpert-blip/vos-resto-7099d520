@@ -58,15 +58,16 @@ const Index = () => {
       <HeroSection />
 
       <main id="main-content">
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-          {TOP_CATEGORIES.map((category) => (
-            <motion.button key={category} whileTap={{ scale: 0.92 }} onClick={() => navigate(`/search?category=${encodeURIComponent(category)}`)} className="flex items-center gap-1.5 flex-shrink-0 rounded-full bg-card shadow-card px-4 py-2.5 text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
-              <span className="text-base">{CATEGORY_EMOJIS[category] || '🍽️'}</span>
-              <span>{category}</span>
-            </motion.button>
-          ))}
-        </div>
-      </section>
+        <section className="px-5 -mt-2">
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+            {TOP_CATEGORIES.map((category) => (
+              <motion.button key={category} whileTap={{ scale: 0.92 }} onClick={() => navigate(`/search?category=${encodeURIComponent(category)}`)} className="flex items-center gap-1.5 flex-shrink-0 rounded-full bg-card shadow-card px-4 py-2.5 text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
+                <span className="text-base">{CATEGORY_EMOJIS[category] || '🍽️'}</span>
+                <span>{category}</span>
+              </motion.button>
+            ))}
+          </div>
+        </section>
 
       <section className="mt-10 px-5">
         <h2 className="text-xl font-bold mb-4">Explorer par quartier</h2>
@@ -91,7 +92,8 @@ const Index = () => {
             {allSorted.map((restaurant) => <RestaurantCard key={restaurant.id} restaurant={restaurant} />)}
           </StaggerList>
         )}
-      </section>
+        </section>
+      </main>
 
       <Footer />
     </div>
