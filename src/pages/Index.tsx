@@ -2,6 +2,7 @@ import { memo, useMemo, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { MapPin, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import StaggerList from '@/components/animations/StaggerList';
 import Footer from '@/components/layout/Footer';
@@ -18,7 +19,7 @@ const HeroSection = memo(() => {
   return (
     <div ref={ref} className="relative h-[420px] overflow-hidden">
       <motion.div style={{ y }} className="absolute inset-0">
-        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=800&fit=crop" alt="Vos Resto" className="w-full h-full object-cover" />
+        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=800&fit=crop" alt="Table dressée dans un restaurant à Dakar" width={1200} height={800} fetchPriority="high" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-background" />
       </motion.div>
       <motion.div style={{ opacity }} className="relative z-10 flex flex-col items-center justify-end h-full pb-10 px-6">
@@ -46,9 +47,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-background">
+      <Helmet>
+        <title>Vos Resto — Guide des restaurants à Dakar, Sénégal</title>
+        <meta name="description" content="Découvrez les meilleurs restaurants de Dakar : menus, réservations, itinéraires et offres. La marketplace des restaurants au Sénégal." />
+        <link rel="canonical" href="https://vos-resto.lovable.app/" />
+        <meta property="og:title" content="Vos Resto — Guide des restaurants à Dakar" />
+        <meta property="og:description" content="Découvrez les meilleurs restaurants de Dakar : menus, réservations, itinéraires et offres." />
+        <meta property="og:url" content="https://vos-resto.lovable.app/" />
+      </Helmet>
       <HeroSection />
 
-      <section className="px-5 -mt-2">
+      <main id="main-content">
         <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
           {TOP_CATEGORIES.map((category) => (
             <motion.button key={category} whileTap={{ scale: 0.92 }} onClick={() => navigate(`/search?category=${encodeURIComponent(category)}`)} className="flex items-center gap-1.5 flex-shrink-0 rounded-full bg-card shadow-card px-4 py-2.5 text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
