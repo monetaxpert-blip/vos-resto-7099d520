@@ -1,7 +1,7 @@
-export type Plan = 'PRO' | 'ELITE';
+export type Plan = 'PRO';
 export type SubStatus = 'trial' | 'active' | 'expired' | 'cancelled';
 
-export const PLAN_RANK: Record<Plan, number> = { PRO: 1, ELITE: 2 };
+export const PLAN_RANK: Record<Plan, number> = { PRO: 1 };
 
 export interface PlanInfo {
   id: Plan;
@@ -31,22 +31,6 @@ export const PLANS: PlanInfo[] = [
       'Offres et promotions',
       'Géolocalisation',
       'Tableau de bord restaurateur',
-    ],
-  },
-  {
-    id: 'ELITE',
-    name: 'Abonnement ELITE',
-    price: 25000,
-    tagline: 'Visibilité maximale et support dédié',
-    color: 'from-amber-500 to-yellow-600',
-    wavePaymentUrl: 'https://pay.wave.com/m/M_sn_UlFXA0KznC31/c/sn/?amount=25000',
-    features: [
-      'Tout ce qui est inclus dans PRO',
-      'Mise en avant prioritaire (top listing)',
-      'Badge ELITE sur la fiche',
-      'Support prioritaire dédié',
-      'Statistiques avancées',
-      'Campagnes marketing incluses',
     ],
   },
 ];
