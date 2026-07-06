@@ -43,7 +43,27 @@ const UpgradeModal = ({
   const [waveRef, setWaveRef] = useState('');
   const [confirming, setConfirming] = useState(false);
 
-  const plan = PLANS.find((p) => p.id === selected)!;
+  const plan = PLANS.find((p) => p.id === selected);
+  const activePlanInfo = PLANS.find((p) => p.id === (initialPlan ?? currentPlan));
+  const wavePaymentUrl = plan?.wavePaymentUrl ?? WAVE_PAYMENT_URL;
+  const displayPrice = plan?.price ?? 10000;
+
+  if (!plan) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Plan non reconnu</DialogTitle>
+            <DialogDescription>
+              Le plan « {String(selected)} » n'est pas reconnu par l'application. Contactez le support pour finaliser votre renouvellement.
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => onOpenChange(false)} className="w-full">Fermer</Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
 
   const handleActivateTest = async () => {
     if (!user) return;
