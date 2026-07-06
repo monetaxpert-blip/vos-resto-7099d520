@@ -198,13 +198,13 @@ const UpgradeModal = ({
         <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-sky-50 to-white dark:from-sky-950/30 dark:to-transparent p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="font-extrabold text-sm">Passer au plan PRO</p>
-              <p className="text-[11px] text-muted-foreground">10 000 FCFA/mois</p>
+              <p className="font-extrabold text-sm">Passer au {plan.name}</p>
+              <p className="text-[11px] text-muted-foreground">{formatFCFA(displayPrice)}/mois</p>
             </div>
             <img src={waveLogo.url} alt="Wave" className="h-8 w-auto" />
           </div>
           <ul className="space-y-1">
-            {(PLANS.find(p => p.id === 'PRO')?.features ?? ['Visibilité illimitée', 'Support prioritaire', 'Stats avancées']).map((f) => (
+            {plan.features.map((f) => (
               <li key={f} className="flex items-start gap-2 text-xs">
                 <Check size={13} className="text-primary mt-0.5 shrink-0" />
                 <span>{f}</span>
@@ -212,7 +212,7 @@ const UpgradeModal = ({
             ))}
           </ul>
           <a
-            href={WAVE_PAYMENT_URL}
+            href={wavePaymentUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full inline-flex items-center justify-center gap-2 h-10 rounded-lg bg-[#00D3FF] hover:bg-[#00b8e0] text-black font-bold text-sm transition-colors"
