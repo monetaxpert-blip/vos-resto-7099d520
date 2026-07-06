@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { Map as MapIcon, Search as SearchIcon, SlidersHorizontal, Wallet, X } from 'lucide-react';
 import RestaurantCard from '@/components/restaurant/RestaurantCard';
 import CategoryTag from '@/components/restaurant/CategoryTag';
@@ -74,6 +75,14 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-background">
+      <Helmet>
+        <title>Rechercher un restaurant à Dakar | Vos Resto</title>
+        <meta name="description" content="Recherchez un restaurant à Dakar par nom, cuisine, quartier ou budget. Trouvez le restaurant parfait pour votre prochaine sortie." />
+        <link rel="canonical" href="https://vos-resto.lovable.app/search" />
+        <meta property="og:title" content="Rechercher un restaurant à Dakar | Vos Resto" />
+        <meta property="og:description" content="Recherchez un restaurant à Dakar par nom, cuisine, quartier ou budget." />
+        <meta property="og:url" content="https://vos-resto.lovable.app/search" />
+      </Helmet>
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-5 pt-12 pb-4">
         <div className="flex items-center gap-3">
           <div className="flex-1 relative">
@@ -106,7 +115,8 @@ const SearchPage = () => {
         )}
       </AnimatePresence>
 
-      <div className="px-5 pt-4">
+      <main id="main-content" className="px-5 pt-4">
+        <h1 className="sr-only">Rechercher un restaurant à Dakar</h1>
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground"><motion.span key={results.length} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="inline-block font-semibold text-foreground">{results.length}</motion.span> restaurant{results.length !== 1 ? 's' : ''}{hasFilters && <button onClick={clearFilters} className="ml-2 text-primary text-xs font-medium">Effacer</button>}</p>
         </div>
@@ -120,7 +130,7 @@ const SearchPage = () => {
           </AnimatePresence>
         </div>
         {results.length === 0 && <div className="text-center py-20"><p className="text-4xl mb-3">🍽️</p><p className="text-muted-foreground font-medium">Aucun restaurant trouvé</p><p className="text-xs text-muted-foreground mt-1">Essaie d'élargir tes filtres</p></div>}
-      </div>
+      </main>
     </div>
   );
 };
