@@ -108,19 +108,20 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
           {adminBadges.slice(0, 2).map((badge) => <span key={badge} className={badgeClass}>{badge}</span>)}
         </div>
       </div>
-      <div className="p-4 space-y-2">
+      <div className="space-y-3 p-5">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="font-bold text-base truncate">{restaurant.name}</h3>
-            <div className="flex items-center gap-1 text-muted-foreground text-xs mt-1"><MapPin size={12} /><span>{restaurant.quartier || restaurant.city}</span></div>
+          <div className="min-w-0">
+            <h3 className="truncate font-display text-lg font-bold transition-colors group-hover:text-primary">{restaurant.name}</h3>
+            <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /><span>{restaurant.quartier || restaurant.city}</span></div>
           </div>
-          {restaurant.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary"><Star size={10} className="fill-current" /> Featured</span>}
+          {restaurant.isFeatured && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gold/20 px-2 py-1 text-[10px] font-bold text-primary"><Star size={10} className="fill-current" /> Coup de cœur</span>}
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 text-xs font-semibold text-muted-foreground">
           <span>Budget moyen {formatFCFA(typeof restaurant.averagePrice === 'number' && restaurant.averagePrice > 0 ? restaurant.averagePrice : deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id))}</span>
-          <span>{openStatus.label}</span>
+          <span className={openStatus.isOpen ? 'text-accent' : ''}>{openStatus.label}</span>
         </div>
       </div>
+
     </motion.div>
   );
 };
