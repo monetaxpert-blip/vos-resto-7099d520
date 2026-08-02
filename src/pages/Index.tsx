@@ -56,11 +56,11 @@ const HeroSection = memo(() => {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.35, type: 'spring', stiffness: 200, damping: 24 }}
-          className="flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-gold/20 bg-card/95 p-2 shadow-float backdrop-blur-md"
+          className="flex w-full max-w-2xl flex-col gap-2 rounded-2xl border border-gold/20 bg-card/95 p-2 shadow-float backdrop-blur-md sm:flex-row sm:items-center"
         >
           <button
             onClick={() => navigate('/search')}
-            className="flex flex-1 items-center gap-3 rounded-xl px-4 py-3 text-left text-base text-muted-foreground transition-colors hover:bg-secondary"
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-4 py-3 text-left text-base text-muted-foreground transition-colors hover:bg-secondary"
           >
             <Search size={18} className="shrink-0 text-primary" />
             <span className="truncate">Quel restaurant cherchez-vous ?</span>
@@ -68,10 +68,11 @@ const HeroSection = memo(() => {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/search')}
-            className="shrink-0 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-premium transition-colors hover:bg-ember sm:px-8 sm:text-base"
+            className="w-full shrink-0 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-premium transition-colors hover:bg-ember sm:w-auto sm:px-8 sm:text-base"
           >
             Rechercher
           </motion.button>
+
         </motion.div>
       </div>
     </div>
