@@ -97,11 +97,12 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
   }
 
   return (
-    <motion.div whileTap={{ scale: 0.98 }} onClick={go} className="rounded-2xl overflow-hidden bg-card shadow-card cursor-pointer group">
+    <motion.div whileTap={{ scale: 0.98 }} onClick={go} className="group cursor-pointer overflow-hidden rounded-[2rem] border border-accent/10 bg-card shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-float">
       <div className="aspect-video relative overflow-hidden">
-        <img src={imageUrl} alt={restaurant.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <img src={imageUrl} alt={restaurant.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
         <div className="absolute top-3 left-3"><RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} /></div>
         <div className="absolute top-3 right-3">{favBtn}</div>
+
         <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
           {plan && <PlanBadge plan={plan} />}
           {adminBadges.slice(0, 2).map((badge) => <span key={badge} className={badgeClass}>{badge}</span>)}
