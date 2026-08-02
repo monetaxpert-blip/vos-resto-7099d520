@@ -97,29 +97,31 @@ const RestaurantCard = ({ restaurant, variant = 'default' }: RestaurantCardProps
   }
 
   return (
-    <motion.div whileTap={{ scale: 0.98 }} onClick={go} className="rounded-2xl overflow-hidden bg-card shadow-card cursor-pointer group">
+    <motion.div whileTap={{ scale: 0.98 }} onClick={go} className="group cursor-pointer overflow-hidden rounded-[2rem] border border-accent/10 bg-card shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-float">
       <div className="aspect-video relative overflow-hidden">
-        <img src={imageUrl} alt={restaurant.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <img src={imageUrl} alt={restaurant.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
         <div className="absolute top-3 left-3"><RatingBadge rating={restaurant.rating} count={restaurant.ratingCount} /></div>
         <div className="absolute top-3 right-3">{favBtn}</div>
+
         <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
           {plan && <PlanBadge plan={plan} />}
           {adminBadges.slice(0, 2).map((badge) => <span key={badge} className={badgeClass}>{badge}</span>)}
         </div>
       </div>
-      <div className="p-4 space-y-2">
+      <div className="space-y-3 p-5">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="font-bold text-base truncate">{restaurant.name}</h3>
-            <div className="flex items-center gap-1 text-muted-foreground text-xs mt-1"><MapPin size={12} /><span>{restaurant.quartier || restaurant.city}</span></div>
+          <div className="min-w-0">
+            <h3 className="truncate font-display text-lg font-bold transition-colors group-hover:text-primary">{restaurant.name}</h3>
+            <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /><span>{restaurant.quartier || restaurant.city}</span></div>
           </div>
-          {restaurant.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary"><Star size={10} className="fill-current" /> Featured</span>}
+          {restaurant.isFeatured && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gold/20 px-2 py-1 text-[10px] font-bold text-primary"><Star size={10} className="fill-current" /> Coup de cœur</span>}
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 text-xs font-semibold text-muted-foreground">
           <span>Budget moyen {formatFCFA(typeof restaurant.averagePrice === 'number' && restaurant.averagePrice > 0 ? restaurant.averagePrice : deriveAveragePrice(restaurant.priceLevel, restaurant.categories, restaurant.id))}</span>
-          <span>{openStatus.label}</span>
+          <span className={openStatus.isOpen ? 'text-accent' : ''}>{openStatus.label}</span>
         </div>
       </div>
+
     </motion.div>
   );
 };
