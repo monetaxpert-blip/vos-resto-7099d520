@@ -135,17 +135,16 @@ const UpgradeModal = ({
           </DialogDescription>
         </DialogHeader>
 
-
-
-        {/* Wave payment card */}
+        {/* Wave payment card — unique point d'entrée abonnement */}
         <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-sky-50 to-white dark:from-sky-950/30 dark:to-transparent p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="font-extrabold text-sm">Passer au {plan.name}</p>
-              <p className="text-[11px] text-muted-foreground">{formatFCFA(displayPrice)}/mois</p>
+              <p className="font-extrabold text-sm">{plan.name}</p>
+              <p className="text-[11px] text-muted-foreground">{formatFCFA(displayPrice)}/mois · {plan.tagline}</p>
             </div>
             <img src={waveLogo.url} alt="Wave" className="h-8 w-auto" />
           </div>
+
           <ul className="space-y-1">
             {plan.features.map((f) => (
               <li key={f} className="flex items-start gap-2 text-xs">
