@@ -105,7 +105,7 @@ const Index = () => {
   }, [list]);
 
   const quartierFillers = Math.max(0, 4 - quartiers.length);
-  const cardFillers = loading ? 3 : Math.max(0, 3 - allSorted.length);
+  const cardFillers = loading ? 3 : allSorted.length === 0 ? 3 : 0;
 
   return (
     <div className="min-h-screen bg-background pb-24">
