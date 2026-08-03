@@ -29,14 +29,14 @@ export function useRestaurantRealtime(restaurantId: string | null | undefined) {
         () =>
           invalidate([
             ['restaurant-reviews', restaurantId],
-            ['db-restaurants'],
-            ['restaurant', restaurantId],
+            ['restaurants'],
+            ['restaurant-stats', restaurantId],
           ])
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'restaurants', filter: `id=eq.${restaurantId}` },
-        () => invalidate([['db-restaurants'], ['restaurant', restaurantId]])
+        () => invalidate([['restaurants']])
       )
       .subscribe();
 
