@@ -13,6 +13,7 @@ import { formatFCFA, isAccessActive, PLANS, subscriptionDaysLeft, trialDaysLeft,
 import UpgradeModal from '@/components/subscription/UpgradeModal';
 import { Button } from '@/components/ui/button';
 import OwnerDashboardContent from '@/components/restaurant/OwnerDashboardContent';
+import { useRestaurantRealtime } from '@/hooks/useRestaurantRealtime';
 
 const NAV_ITEMS = [
   { id: 'overview', label: "Vue d'ensemble", title: "Vue d'ensemble", icon: LayoutDashboard },
@@ -48,6 +49,7 @@ const RestaurantDashboard = () => {
   const restaurantId = selected?.restaurant?.id;
   const { data: orders = [] } = useOwnerOrders(restaurantId);
   const { reservations } = useOwnerReservations(restaurantId);
+  useRestaurantRealtime(restaurantId);
 
   const pendingOrders = orders.filter((o) => o.status === 'pending').length;
   const pendingReservations = reservations.filter((r) => r.status === 'pending').length;
