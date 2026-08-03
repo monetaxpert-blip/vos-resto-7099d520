@@ -120,7 +120,7 @@ const Index = () => {
 
       <HeroSection />
 
-      <main id="main-content" className="relative z-20 mx-auto -mt-12 max-w-7xl space-y-16 px-5 pb-16 sm:px-6 sm:space-y-20">
+      <main id="main-content" className="relative z-20 mx-auto -mt-10 max-w-7xl space-y-16 px-5 pb-16 pt-14 sm:px-6 sm:space-y-20 sm:pt-16">
         {/* Catégories */}
         <motion.section
           initial={{ opacity: 0, y: 24 }}
@@ -130,7 +130,7 @@ const Index = () => {
           className="space-y-5"
         >
           <SectionTitle>Explorer par catégorie</SectionTitle>
-          <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar sm:flex-wrap sm:overflow-visible">
+          <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar sm:flex-wrap sm:justify-center sm:overflow-visible">
             {TOP_CATEGORIES.map((category) => {
               const Icon = getCategoryIcon(category);
               return (
@@ -212,19 +212,28 @@ const Index = () => {
           </div>
 
           {!loading && allSorted.length > 0 && (
-            <StaggerList className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+            <StaggerList
+              className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8 ${
+                allSorted.length === 1
+                  ? 'sm:max-w-md sm:grid-cols-1'
+                  : allSorted.length === 2
+                    ? 'lg:max-w-4xl lg:grid-cols-2'
+                    : 'lg:grid-cols-3'
+              }`}
+            >
               {allSorted.map((restaurant) => <RestaurantCard key={restaurant.id} restaurant={restaurant} />)}
             </StaggerList>
           )}
 
 
           {cardFillers > 0 && (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+            <div className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8 ${cardFillers === 1 ? 'sm:max-w-md sm:grid-cols-1' : 'lg:grid-cols-3'}`}>
               {Array.from({ length: cardFillers }).map((_, index) => (
                 <RestaurantCardSkeleton key={`skeleton-${index}`} dim={!loading && index > 0} />
               ))}
             </div>
           )}
+
         </motion.section>
       </main>
 
