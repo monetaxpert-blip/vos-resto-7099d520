@@ -19,7 +19,7 @@ const HeroSection = memo(() => {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
 
   return (
-    <div ref={ref} className="relative h-[70vh] min-h-[460px] max-h-[720px] overflow-hidden">
+    <div ref={ref} className="relative h-[78vh] min-h-[560px] max-h-[860px] overflow-hidden">
       <motion.div style={{ y, scale }} className="absolute inset-0">
         <img
           src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=1080&fit=crop"
@@ -27,17 +27,17 @@ const HeroSection = memo(() => {
           width={1920}
           height={1080}
           fetchPriority="high"
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover object-center"
         />
         <div className="absolute inset-0" style={{ backgroundImage: 'var(--gradient-hero)' }} />
       </motion.div>
 
-      <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center">
+      <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 pb-16 text-center">
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-4 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-ember/30 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold backdrop-blur-sm"
+          className="mb-5 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-ember/70 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold shadow-premium backdrop-blur-md"
         >
           Marketplace des restaurants au Sénégal
         </motion.p>
@@ -46,11 +46,12 @@ const HeroSection = memo(() => {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 180, damping: 22 }}
-          className="mb-8 font-display text-4xl font-extrabold leading-[1.05] text-primary-foreground sm:text-6xl md:text-7xl"
+          className="mb-8 font-display text-4xl font-extrabold leading-[1.05] text-hero-foreground drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] sm:text-6xl md:text-7xl"
         >
           Le goût du <span className="text-gold">Sénégal</span>,
           <br className="hidden sm:block" /> à votre table.
         </motion.h1>
+
 
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
