@@ -13,7 +13,7 @@ type Step = 'role' | 'form';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { user, isReady, isAdmin, isRestaurantOwner, intendedRole } = useAuth();
+  const { user, isReady, rolesReady, isAdmin, isRestaurantOwner, intendedRole } = useAuth();
   const [step, setStep] = useState<Step>('role');
   const [role, setRole] = useState<Role>('client');
   const [mode, setMode] = useState<'signin' | 'signup'>('signup');
@@ -27,7 +27,9 @@ const Auth = () => {
   const redirect = new URLSearchParams(window.location.search).get('redirect');
 
   useEffect(() => {
-    if (!isReady || !user) return;
+    // Wait for BOTH the session and the freshly-loaded roles: redirecting on a
+    // stale isRestaurantOwner=false sent existing owners to onboarding.
+    if (!isReady || !rolesReady || !user) return;
     if (redirect) {
       navigate(redirect, { replace: true });
       return;
@@ -47,7 +49,8 @@ const Auth = () => {
       return;
     }
     navigate('/', { replace: true });
-  }, [user, isReady, isAdmin, isRestaurantOwner, intendedRole, navigate, redirect]);
+  }, [user, isReady, rolesReady, isAdmin, isRestaurantOwner, intendedRole, navigate, redirect]);
+
 
   const lastSubmitRef = useRef<number>(0);
 
