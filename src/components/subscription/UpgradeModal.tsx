@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Check, Info, Loader2, ExternalLink } from 'lucide-react';
 import {
   Dialog,
@@ -12,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PLANS, formatFCFA, type Plan } from '@/lib/subscription';
-import PaymentMethodsRow from './PaymentMethodsRow';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -44,7 +42,6 @@ const UpgradeModal = ({
   const [confirming, setConfirming] = useState(false);
 
   const plan = PLANS.find((p) => p.id === selected);
-  const activePlanInfo = PLANS.find((p) => p.id === (initialPlan ?? currentPlan));
   const wavePaymentUrl = plan?.wavePaymentUrl ?? WAVE_PAYMENT_URL;
   const displayPrice = plan?.price ?? 10000;
 
