@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Star, ThumbsUp } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Star, ThumbsUp, Pencil } from 'lucide-react';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,9 +14,22 @@ const reviewSchema = z.object({
 
 const RestaurantReviews = ({ restaurantId }: { restaurantId: string }) => {
   const { user } = useAuth();
-  const { reviews, isLoading, create, markHelpful } = useRestaurantReviews(restaurantId);
+  const { reviews, isLoading, create, update, markHelpful } = useRestaurantReviews(restaurantId);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+
+  const myReview = useMemo(
+    () => (user ? reviews.find((review) => review.user_id === user.id) ?? null : null),
+    [reviews, user]
+  );
+
+  // Pre-fill the form with the existing review so the CTA becomes an edit.
+  useEffect(() => {
+    if (myReview) {
+      setRating(myReview.rating);
+      setComment(myReview.comment ?? '');
+    }
+  }, [myReview?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const average = useMemo(() => {
     if (reviews.length === 0) return null;
@@ -33,40 +46,73 @@ const RestaurantReviews = ({ restaurantId }: { restaurantId: string }) => {
       toast.error(parsed.error.issues[0]?.message ?? 'Avis invalide');
       return;
     }
+    if (myReview) {
+      update.mutate(
+        { review_id: myReview.id, rating, comment },
+        { onSuccess: () => toast.success('Avis mis à jour') }
+      );
+      return;
+    }
     create.mutate(
       { restaurant_id: restaurantId, user_id: user.id, rating, comment },
       {
         onSuccess: () => {
           toast.success('Avis publié');
-          setComment('');
-          setRating(5);
         },
       }
     );
   };
 
+  const pending = create.isPending || update.isPending;
+
   return (
-    <section className="mt-8 space-y-4">
+    <section id="avis" className="mt-8 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold">Avis clients</h2>
+          <h2 className="font-display text-lg font-bold">Avis clients</h2>
           <p className="text-xs text-muted-foreground">
             {average ? `${average.toFixed(1)} / 5 · ${reviews.length} avis` : 'Pas encore d’avis'}
           </p>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
-        <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((value) => (
-            <button key={value} type="button" onClick={() => setRating(value)} className="text-primary">
-              <Star size={18} className={value <= rating ? 'fill-current' : ''} />
-            </button>
-          ))}
+      {user ? (
+        <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
+          {myReview && (
+            <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+              <Pencil size={12} /> Vous avez déjà laissé un avis — vous pouvez le modifier.
+            </p>
+          )}
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setRating(value)}
+                aria-label={`${value} étoile${value > 1 ? 's' : ''}`}
+                className="text-primary"
+              >
+                <Star size={20} className={value <= rating ? 'fill-current' : ''} />
+              </button>
+            ))}
+          </div>
+          <Textarea
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder="Partagez votre expérience"
+          />
+          <Button onClick={submit} disabled={pending}>
+            {pending ? 'Envoi...' : myReview ? 'Modifier votre avis' : 'Publier un avis'}
+          </Button>
         </div>
-        <Textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Partagez votre expérience" />
-        <Button onClick={submit} disabled={create.isPending}>{create.isPending ? 'Publication...' : 'Publier un avis'}</Button>
-      </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-border bg-card/60 p-4 text-center">
+          <p className="text-sm font-semibold">Connectez-vous pour laisser un avis</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Votre note aide les autres gourmands à choisir.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {isLoading && <p className="text-sm text-muted-foreground">Chargement...</p>}
