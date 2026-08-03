@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const intendedRole = (user?.user_metadata?.intended_role as 'client' | 'restaurant' | undefined) ?? null;
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isReady, isAdmin, isRestaurantOwner, intendedRole, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isReady, rolesReady, isAdmin, isRestaurantOwner, intendedRole, signOut }}>
       {children}
     </AuthContext.Provider>
   );
