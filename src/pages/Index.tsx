@@ -227,7 +227,7 @@ const Index = () => {
 
 
           {cardFillers > 0 && (
-            <div className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8 ${cardFillers === 1 ? 'sm:max-w-md sm:grid-cols-1' : 'lg:grid-cols-3'}`}>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
               {Array.from({ length: cardFillers }).map((_, index) => (
                 <RestaurantCardSkeleton key={`skeleton-${index}`} dim={!loading && index > 0} />
               ))}
