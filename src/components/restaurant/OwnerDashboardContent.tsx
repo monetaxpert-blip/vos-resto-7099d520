@@ -25,6 +25,7 @@ const schema = z.object({
   name: z.string().trim().min(2).max(120),
   description: z.string().trim().max(1500).optional().or(z.literal('')),
   phone: z.string().trim().max(40).optional().or(z.literal('')),
+  email: z.string().trim().max(255).optional().or(z.literal('')),
   whatsapp_number: z.string().trim().max(30).optional().or(z.literal('')),
   average_price: z.coerce.number().min(0).max(500000).nullable(),
   website: z.string().trim().max(255).optional().or(z.literal('')),
@@ -50,6 +51,7 @@ export default function OwnerDashboardContent({ restaurant, onRefresh, activeTab
     name: restaurant.name,
     description: restaurant.description ?? '',
     phone: restaurant.phone ?? '',
+    email: restaurant.email ?? '',
     whatsapp_number: restaurant.whatsappNumber ?? '',
     website: restaurant.website ?? '',
     average_price: restaurant.averagePrice ? String(restaurant.averagePrice) : '',
@@ -63,6 +65,7 @@ export default function OwnerDashboardContent({ restaurant, onRefresh, activeTab
     latitude: restaurant.latitude ? String(restaurant.latitude) : restaurant.lat ? String(restaurant.lat) : '',
     longitude: restaurant.longitude ? String(restaurant.longitude) : restaurant.lng ? String(restaurant.lng) : '',
   });
+  const [categories, setCategories] = useState<string[]>(restaurant.categories ?? []);
   const [hours, setHours] = useState(normalizeOpeningHours(restaurant.openingHours ?? DEFAULT_OPENING_HOURS));
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -98,7 +101,7 @@ export default function OwnerDashboardContent({ restaurant, onRefresh, activeTab
       price_range: form.price_range,
       whatsapp_link: whatsappLink || null,
       opening_hours: hours as unknown as Record<string, unknown>,
-      categories: restaurant.categories,
+      categories: categories.length ? categories : restaurant.categories,
     };
     const { error } = await supabase.from('restaurants').update(payload as never).eq('id', restaurant.id);
     setSaving(false);
@@ -191,6 +194,25 @@ export default function OwnerDashboardContent({ restaurant, onRefresh, activeTab
           <div className="grid gap-3 sm:grid-cols-2">
             <Input value={form.quartier} onChange={(e) => setForm((s) => ({ ...s, quartier: e.target.value }))} placeholder="Quartier" />
             <Input value={form.website} onChange={(e) => setForm((s) => ({ ...s, website: e.target.value }))} placeholder="Site web" />
+          </div>
+          <Input value={form.email} onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))} placeholder="Email de contact" type="email" />
+          <div className="rounded-xl bg-secondary p-3 space-y-2">
+            <p className="text-sm font-semibold">Catégories affichées sur la fiche</p>
+            <div className="flex flex-wrap gap-2">
+              {Array.from(new Set([...CUISINE_OPTIONS, ...categories])).map((cat) => {
+                const on = categories.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategories((prev) => (on ? prev.filter((c) => c !== cat) : [...prev, cat]))}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${on ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border text-muted-foreground hover:border-primary'}`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <Input value={form.address} onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))} placeholder="Adresse" />
           <Input value={form.address_detail} onChange={(e) => setForm((s) => ({ ...s, address_detail: e.target.value }))} placeholder="Adresse détaillée" />
