@@ -36,7 +36,7 @@ const UpgradeModal = ({
   onActivated,
 }: Props) => {
   const { user } = useAuth();
-  const [selected, setSelected] = useState<Plan>(initialPlan ?? currentPlan);
+  const selected: Plan = initialPlan ?? currentPlan;
   const [loading, setLoading] = useState(false);
   const [waveRef, setWaveRef] = useState('');
   const [confirming, setConfirming] = useState(false);
