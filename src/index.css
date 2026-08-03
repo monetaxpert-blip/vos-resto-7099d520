@@ -33,6 +33,9 @@
 
     --ember: 7 59% 23%;
 
+    /* Texte posé sur l'image du hero : toujours clair, dans les deux thèmes */
+    --hero-foreground: 0 0% 100%;
+
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
@@ -81,6 +84,7 @@
     --gold: 42 77% 60%;
     --gold-foreground: 7 59% 14%;
     --ember: 7 59% 5%;
+    --hero-foreground: 0 0% 100%;
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
     --border: 7 20% 18%;

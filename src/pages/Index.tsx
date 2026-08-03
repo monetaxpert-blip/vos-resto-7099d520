@@ -19,7 +19,7 @@ const HeroSection = memo(() => {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
 
   return (
-    <div ref={ref} className="relative h-[70vh] min-h-[460px] max-h-[720px] overflow-hidden">
+    <div ref={ref} className="relative h-[78vh] min-h-[560px] max-h-[860px] overflow-hidden">
       <motion.div style={{ y, scale }} className="absolute inset-0">
         <img
           src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=1080&fit=crop"
@@ -27,17 +27,17 @@ const HeroSection = memo(() => {
           width={1920}
           height={1080}
           fetchPriority="high"
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover object-center"
         />
         <div className="absolute inset-0" style={{ backgroundImage: 'var(--gradient-hero)' }} />
       </motion.div>
 
-      <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 text-center">
+      <div className="relative z-10 mx-auto flex h-full max-w-5xl flex-col items-center justify-center px-6 pb-16 text-center">
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-4 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-ember/30 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold backdrop-blur-sm"
+          className="mb-5 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-ember/70 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold shadow-premium backdrop-blur-md"
         >
           Marketplace des restaurants au Sénégal
         </motion.p>
@@ -46,11 +46,12 @@ const HeroSection = memo(() => {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 180, damping: 22 }}
-          className="mb-8 font-display text-4xl font-extrabold leading-[1.05] text-primary-foreground sm:text-6xl md:text-7xl"
+          className="mb-8 font-display text-4xl font-extrabold leading-[1.05] text-hero-foreground drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] sm:text-6xl md:text-7xl"
         >
           Le goût du <span className="text-gold">Sénégal</span>,
           <br className="hidden sm:block" /> à votre table.
         </motion.h1>
+
 
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
@@ -104,7 +105,7 @@ const Index = () => {
   }, [list]);
 
   const quartierFillers = Math.max(0, 4 - quartiers.length);
-  const cardFillers = loading ? 3 : Math.max(0, 3 - allSorted.length);
+  const cardFillers = loading ? 3 : allSorted.length === 0 ? 3 : 0;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -119,7 +120,7 @@ const Index = () => {
 
       <HeroSection />
 
-      <main id="main-content" className="relative z-20 mx-auto -mt-12 max-w-7xl space-y-16 px-5 pb-16 sm:px-6 sm:space-y-20">
+      <main id="main-content" className="relative z-20 mx-auto -mt-10 max-w-7xl space-y-16 px-5 pb-16 pt-14 sm:px-6 sm:space-y-20 sm:pt-16">
         {/* Catégories */}
         <motion.section
           initial={{ opacity: 0, y: 24 }}
@@ -129,7 +130,7 @@ const Index = () => {
           className="space-y-5"
         >
           <SectionTitle>Explorer par catégorie</SectionTitle>
-          <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar sm:flex-wrap sm:overflow-visible">
+          <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar sm:flex-wrap sm:justify-center sm:overflow-visible">
             {TOP_CATEGORIES.map((category) => {
               const Icon = getCategoryIcon(category);
               return (
@@ -211,7 +212,15 @@ const Index = () => {
           </div>
 
           {!loading && allSorted.length > 0 && (
-            <StaggerList className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+            <StaggerList
+              className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8 ${
+                allSorted.length === 1
+                  ? 'sm:max-w-md sm:grid-cols-1'
+                  : allSorted.length === 2
+                    ? 'lg:max-w-4xl lg:grid-cols-2'
+                    : 'lg:grid-cols-3'
+              }`}
+            >
               {allSorted.map((restaurant) => <RestaurantCard key={restaurant.id} restaurant={restaurant} />)}
             </StaggerList>
           )}
@@ -224,6 +233,7 @@ const Index = () => {
               ))}
             </div>
           )}
+
         </motion.section>
       </main>
 
