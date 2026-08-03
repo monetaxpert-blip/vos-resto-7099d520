@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Check, Info, Loader2, ExternalLink } from 'lucide-react';
 import {
   Dialog,
@@ -12,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PLANS, formatFCFA, type Plan } from '@/lib/subscription';
-import PaymentMethodsRow from './PaymentMethodsRow';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -38,13 +36,12 @@ const UpgradeModal = ({
   onActivated,
 }: Props) => {
   const { user } = useAuth();
-  const [selected, setSelected] = useState<Plan>(initialPlan ?? currentPlan);
+  const selected: Plan = initialPlan ?? currentPlan;
   const [loading, setLoading] = useState(false);
   const [waveRef, setWaveRef] = useState('');
   const [confirming, setConfirming] = useState(false);
 
   const plan = PLANS.find((p) => p.id === selected);
-  const activePlanInfo = PLANS.find((p) => p.id === (initialPlan ?? currentPlan));
   const wavePaymentUrl = plan?.wavePaymentUrl ?? WAVE_PAYMENT_URL;
   const displayPrice = plan?.price ?? 10000;
 
@@ -129,80 +126,22 @@ const UpgradeModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Choisir un plan</DialogTitle>
+          <DialogTitle>Passer au {plan.name}</DialogTitle>
           <DialogDescription>
-            Sélectionnez un abonnement pour votre restaurant.
+            {formatFCFA(displayPrice)}/mois — paiement par Wave uniquement.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 mt-2">
-          {PLANS.map((p) => {
-            const isSelected = selected === p.id;
-            const isCurrent = currentPlan === p.id;
-            return (
-              <motion.button
-                key={p.id}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setSelected(p.id)}
-                className={`w-full text-left rounded-2xl p-4 border-2 transition-all ${
-                  isSelected
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border bg-card'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-base">{p.name}</span>
-                      {p.highlight && (
-                        <span className="text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-                          Populaire
-                        </span>
-                      )}
-                      {isCurrent && (
-                        <span className="text-[10px] font-bold uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                          Actuel
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">{p.tagline}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-extrabold">{formatFCFA(p.price)}</p>
-                    <p className="text-[10px] text-muted-foreground">/mois</p>
-                  </div>
-                </div>
-                {isSelected && (
-                  <ul className="mt-3 space-y-1.5">
-                    {p.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-xs">
-                        <Check size={14} className="text-primary mt-0.5 shrink-0" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </motion.button>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 rounded-xl bg-muted/50 p-3">
-          <p className="text-[11px] font-semibold text-muted-foreground mb-1 text-center">
-            Moyens de paiement disponibles
-          </p>
-          <PaymentMethodsRow />
-        </div>
-
-        {/* Wave payment card */}
+        {/* Wave payment card — unique point d'entrée abonnement */}
         <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-sky-50 to-white dark:from-sky-950/30 dark:to-transparent p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="font-extrabold text-sm">Passer au {plan.name}</p>
-              <p className="text-[11px] text-muted-foreground">{formatFCFA(displayPrice)}/mois</p>
+              <p className="font-extrabold text-sm">{plan.name}</p>
+              <p className="text-[11px] text-muted-foreground">{formatFCFA(displayPrice)}/mois · {plan.tagline}</p>
             </div>
             <img src={waveLogo.url} alt="Wave" className="h-8 w-auto" />
           </div>
+
           <ul className="space-y-1">
             {plan.features.map((f) => (
               <li key={f} className="flex items-start gap-2 text-xs">

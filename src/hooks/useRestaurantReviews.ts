@@ -51,11 +51,15 @@ export function useRestaurantReviews(restaurantId?: string) {
   const create = useMutation({
     mutationFn: async (payload: { restaurant_id: string; user_id: string; rating: number; comment: string }) => {
       const { error } = await supabase.from('reviews').insert(payload);
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') throw new Error('Vous avez déjà laissé un avis — modifiez-le plutôt.');
+        throw error;
+      }
     },
     onSuccess: invalidate,
     onError: (error) => toast.error(error instanceof Error ? error.message : 'Erreur avis'),
   });
+
 
   const markHelpful = useMutation({
     mutationFn: async (payload: { review_id: string; user_id: string }) => {

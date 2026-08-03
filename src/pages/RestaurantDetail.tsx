@@ -20,6 +20,8 @@ import ReservationSheet from '@/components/restaurant/ReservationSheet';
 import MenuSection, { type MenuSectionCategory } from '@/components/restaurant/MenuSection';
 import RestaurantMap from '@/components/map/RestaurantMap';
 import CartDrawer from '@/components/restaurant/CartDrawer';
+import RestaurantReviews from '@/components/restaurant/RestaurantReviews';
+import { useRestaurantRealtime } from '@/hooks/useRestaurantRealtime';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { track } from '@/lib/analytics';
 
@@ -36,6 +38,7 @@ const RestaurantDetail = () => {
   const { offers } = useRestaurantOffers(restaurant?.id);
   const [activeImg, setActiveImg] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  useRestaurantRealtime(restaurant?.id);
 
 
   // Owner redirect: restaurant owners (non-admin) should not browse public details
@@ -420,6 +423,9 @@ const RestaurantDetail = () => {
 
         {/* Indicative menu (when no orderable menu exists) — kept lower as reference */}
         {!hasRealMenu && <MenuSection menu={menu} orderable={false} restaurantId={restaurant.id} restaurantName={restaurant.name} />}
+
+        {/* Avis clients */}
+        <RestaurantReviews restaurantId={restaurant.id} />
 
         {/* Similar */}
         {similar.length > 0 && (

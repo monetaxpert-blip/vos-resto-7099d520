@@ -104,7 +104,6 @@ const Index = () => {
       .slice(0, 8);
   }, [list]);
 
-  const quartierFillers = Math.max(0, 4 - quartiers.length);
   const cardFillers = loading ? 3 : allSorted.length === 0 ? 3 : 0;
 
   return (
@@ -154,41 +153,33 @@ const Index = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.4 }}
-          className="space-y-6"
+          className="space-y-5"
         >
           <SectionTitle>Quartiers populaires</SectionTitle>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+          <div className="flex flex-wrap gap-3">
             {quartiers.map((quartier) => (
               <motion.button
                 key={quartier.name}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate(`/search?quartier=${encodeURIComponent(quartier.name)}`)}
-                className="group relative h-36 overflow-hidden rounded-3xl shadow-card sm:h-48"
+                className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-accent/20 bg-gradient-ember px-4 py-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card"
               >
-                <div className="absolute inset-0 bg-gradient-ember transition-transform duration-700 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-ember via-ember/20 to-transparent" />
-                <div className="absolute bottom-5 left-5 text-left">
-                  <h3 className="font-display text-lg font-bold text-primary-foreground sm:text-xl">{quartier.name}</h3>
-                  <p className="flex items-center gap-1 text-sm font-semibold text-gold">
-                    <MapPin size={12} />
-                    {quartier.count} restaurant{quartier.count > 1 ? 's' : ''}
-                  </p>
-                </div>
+                <MapPin size={16} className="shrink-0 text-gold" />
+                <span className="font-display text-sm font-bold text-primary-foreground sm:text-base">{quartier.name}</span>
+                <span className="rounded-full bg-ember/60 px-2 py-0.5 text-[11px] font-semibold text-gold">
+                  {quartier.count}
+                </span>
               </motion.button>
             ))}
-            {Array.from({ length: quartierFillers }).map((_, index) => (
-              <div
-                key={`quartier-filler-${index}`}
-                className={`flex h-36 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-accent/25 bg-card/60 p-6 text-center sm:h-48 ${index > 0 ? 'opacity-40' : ''}`}
-              >
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-accent/20 bg-secondary">
-                  <Plus size={20} className="text-accent" />
-                </div>
+            {quartiers.length === 0 && (
+              <div className="flex items-center gap-2 rounded-2xl border border-dashed border-accent/25 bg-card/60 px-4 py-3">
+                <Plus size={16} className="text-accent" />
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">À venir</p>
               </div>
-            ))}
+            )}
           </div>
         </motion.section>
+
 
         {/* Restaurants */}
         <motion.section

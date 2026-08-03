@@ -7,6 +7,7 @@ interface AuthContextValue {
   session: Session | null;
   loading: boolean;
   isReady: boolean;
+  rolesReady: boolean;
   isAdmin: boolean;
   isRestaurantOwner: boolean;
   intendedRole: 'client' | 'restaurant' | null;
@@ -20,13 +21,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
+  const [rolesReady, setRolesReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isRestaurantOwner, setIsRestaurantOwner] = useState(false);
 
   const checkRoles = async (uid: string | undefined) => {
+    // Roles are stale until this resolves — consumers must wait on rolesReady
+    setRolesReady(false);
     if (!uid) {
       setIsAdmin(false);
       setIsRestaurantOwner(false);
+      setRolesReady(true);
       return;
     }
     const { data } = await supabase
@@ -36,12 +41,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const roles = new Set((data ?? []).map((row) => row.role));
     setIsAdmin(roles.has('admin'));
     setIsRestaurantOwner(roles.has('restaurant_owner'));
+    setRolesReady(true);
   };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
+      // Mark roles as pending synchronously so redirects never read stale values
+      setRolesReady(false);
       // defer to avoid deadlock
       setTimeout(() => checkRoles(newSession?.user?.id), 0);
     });
@@ -58,6 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -65,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const intendedRole = (user?.user_metadata?.intended_role as 'client' | 'restaurant' | undefined) ?? null;
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isReady, isAdmin, isRestaurantOwner, intendedRole, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isReady, rolesReady, isAdmin, isRestaurantOwner, intendedRole, signOut }}>
       {children}
     </AuthContext.Provider>
   );
