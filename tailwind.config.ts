@@ -24,6 +24,7 @@ export default {
           foreground: "hsl(var(--gold-foreground))",
         },
         ember: "hsl(var(--ember))",
+        "hero-foreground": "hsl(var(--hero-foreground))",
 
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

@@ -32,7 +32,7 @@ const BottomNav = memo(
     return (
       <nav
         ref={ref}
-        className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 pb-safe"
+        className="fixed inset-x-0 bottom-0 z-50 glass border-t border-border/50 pb-safe md:hidden"
       >
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
           {tabs.map(({ path, icon: Icon, label }) => {
