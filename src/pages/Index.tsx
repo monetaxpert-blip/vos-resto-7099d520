@@ -104,7 +104,6 @@ const Index = () => {
       .slice(0, 8);
   }, [list]);
 
-  const quartierFillers = Math.max(0, 4 - quartiers.length);
   const cardFillers = loading ? 3 : allSorted.length === 0 ? 3 : 0;
 
   return (
