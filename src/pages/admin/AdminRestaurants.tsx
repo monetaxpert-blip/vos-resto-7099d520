@@ -68,7 +68,7 @@ const AdminRestaurants = () => {
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-bold text-sm truncate">{r.name}</p>
                   {r.isPinned && <Pin size={12} className="text-primary" />}
-                  {r.isFeatured && <Star size={12} className="text-amber-500 fill-amber-500" />}
+                  {r.isFeatured && <Star size={12} className="text-gold fill-gold" />}
                   {savingId === r.id && <Loader2 size={12} className="animate-spin text-muted-foreground" />}
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
