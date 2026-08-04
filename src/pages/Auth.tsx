@@ -30,10 +30,6 @@ const Auth = () => {
     // Wait for BOTH the session and the freshly-loaded roles: redirecting on a
     // stale isRestaurantOwner=false sent existing owners to onboarding.
     if (!isReady || !rolesReady || !user) return;
-    if (redirect) {
-      navigate(redirect, { replace: true });
-      return;
-    }
     if (isAdmin) {
       navigate('/admin', { replace: true });
       return;
@@ -42,6 +38,10 @@ const Auth = () => {
     // and no ownership row yet should land on onboarding.
     if (isRestaurantOwner) {
       navigate('/dashboard', { replace: true });
+      return;
+    }
+    if (redirect) {
+      navigate(redirect, { replace: true });
       return;
     }
     if (intendedRole === 'restaurant') {

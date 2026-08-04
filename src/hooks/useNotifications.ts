@@ -36,10 +36,21 @@ export function useNotifications() {
 
   useEffect(() => {
     if (!user) return;
-    const interval = setInterval(() => {
+    const channel = supabase
+      .channel(`notifications-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ['notifications', user.id] })
+      )
+      .subscribe();
+    const interval = window.setInterval(() => {
       qc.invalidateQueries({ queryKey: ['notifications', user.id] });
     }, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   const markRead = useMutation({

@@ -84,10 +84,10 @@ const SubscriptionRequiredScreen = () => {
 };
 
 const OwnerGuard = ({ children }: { children: ReactNode }) => {
-  const { user, loading, isRestaurantOwner, isAdmin } = useAuth();
+  const { user, loading, rolesReady, isRestaurantOwner, isAdmin } = useAuth();
   const { ownerships, loading: ownLoading } = useMyOwnerships();
 
-  if (loading || (user && ownLoading)) {
+  if (loading || !rolesReady || (user && ownLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="animate-spin text-primary" />

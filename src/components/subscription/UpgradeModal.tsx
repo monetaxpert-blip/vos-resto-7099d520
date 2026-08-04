@@ -167,11 +167,11 @@ const UpgradeModal = ({
               id="wave-ref"
               value={waveRef}
               onChange={(e) => setWaveRef(e.target.value)}
-              placeholder="Ex: TXN-XXXXXXXXXX (reçue par SMS après paiement)"
+              placeholder="Ex. : TXN-XXXXXXXXXX"
               className="h-9 text-sm"
             />
             <p className="text-[10px] text-muted-foreground">
-              Vous trouverez cette référence dans le SMS de confirmation envoyé par Wave après votre paiement.
+              Référence reçue par SMS après le paiement. Vous la trouverez dans le message de confirmation envoyé par Wave.
             </p>
             <Button
               onClick={handleConfirmWave}

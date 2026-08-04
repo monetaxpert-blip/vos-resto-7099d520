@@ -18,19 +18,19 @@ const OWNER_ALLOWED_PREFIXES = [
 ];
 
 const RoleRouter = ({ children }: { children: ReactNode }) => {
-  const { isReady, isRestaurantOwner, isAdmin } = useAuth();
+  const { isReady, rolesReady, isRestaurantOwner, isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || !rolesReady) return;
     if (!isRestaurantOwner || isAdmin) return;
     const path = location.pathname;
     const allowed = OWNER_ALLOWED_PREFIXES.some((p) => path === p || path.startsWith(p + '/') || path.startsWith(p));
     if (!allowed) {
       navigate('/restaurant/dashboard', { replace: true });
     }
-  }, [isReady, isRestaurantOwner, isAdmin, location.pathname, navigate]);
+  }, [isReady, rolesReady, isRestaurantOwner, isAdmin, location.pathname, navigate]);
 
   return <>{children}</>;
 };
