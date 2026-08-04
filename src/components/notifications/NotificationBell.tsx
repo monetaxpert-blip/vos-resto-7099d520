@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bell, CheckCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,6 +11,44 @@ const NotificationBell = () => {
   const { user } = useAuth();
   const { items, unreadCount, markRead, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  const previousUnread = useRef<number | null>(null);
+  const soundEnabled = useRef(false);
+
+  useEffect(() => {
+    const enableSound = () => {
+      soundEnabled.current = true;
+      window.removeEventListener('pointerdown', enableSound);
+      window.removeEventListener('keydown', enableSound);
+    };
+    window.addEventListener('pointerdown', enableSound, { once: true });
+    window.addEventListener('keydown', enableSound, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', enableSound);
+      window.removeEventListener('keydown', enableSound);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previousUnread.current !== null && unreadCount > previousUnread.current && soundEnabled.current) {
+      const AudioContextClass = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (AudioContextClass) {
+        const context = new AudioContextClass();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, context.currentTime);
+        gain.gain.setValueAtTime(0.0001, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.16, context.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.22);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.24);
+        oscillator.addEventListener('ended', () => context.close());
+      }
+    }
+    previousUnread.current = unreadCount;
+  }, [unreadCount]);
 
   if (!user) return null;
 
