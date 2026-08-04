@@ -28,8 +28,9 @@
     --accent: 32 67% 50%;
     --accent-foreground: 0 0% 100%;
 
-    --gold: 42 77% 60%;
-    --gold-foreground: 7 59% 23%;
+    /* "Gold" est désormais un orange foncé */
+    --gold: 24 88% 45%;
+    --gold-foreground: 0 0% 100%;
 
     --ember: 7 59% 23%;
 
@@ -81,8 +82,8 @@
     --muted-foreground: 33 12% 62%;
     --accent: 42 77% 60%;
     --accent-foreground: 7 59% 14%;
-    --gold: 42 77% 60%;
-    --gold-foreground: 7 59% 14%;
+    --gold: 24 88% 52%;
+    --gold-foreground: 0 0% 100%;
     --ember: 7 59% 5%;
     --hero-foreground: 0 0% 100%;
     --destructive: 0 62% 40%;
