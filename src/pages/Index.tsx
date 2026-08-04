@@ -37,7 +37,7 @@ const HeroSection = memo(() => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-5 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-ember/70 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold shadow-premium backdrop-blur-md"
+          className="mb-4 inline-flex max-w-full items-center gap-2 rounded-full border border-gold/40 bg-ember/70 px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-gold shadow-premium backdrop-blur-md sm:text-[10px]"
         >
           Marketplace des restaurants au Sénégal
         </motion.p>
@@ -46,7 +46,7 @@ const HeroSection = memo(() => {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 180, damping: 22 }}
-          className="mb-8 font-display text-4xl font-extrabold leading-[1.05] text-hero-foreground drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] sm:text-6xl md:text-7xl"
+          className="mx-auto mb-7 max-w-3xl text-balance font-display text-[1.75rem] font-extrabold leading-[1.15] tracking-tight text-hero-foreground drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] sm:text-4xl md:text-5xl"
         >
           Le goût du <span className="text-gold">Sénégal</span>,
           <br className="hidden sm:block" /> à votre table.
