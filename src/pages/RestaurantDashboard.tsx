@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, Calendar, UtensilsCrossed, Image as ImageIcon,
-  Tag, BarChart3, Settings, Bell, Plus, TriangleAlert, Clock, Check,
+  Tag, BarChart3, Settings, Bell, Plus, TriangleAlert, Clock, Check, Radio,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMyOwnerships } from '@/hooks/useOwnership';
@@ -184,10 +184,10 @@ const RestaurantDashboard = () => {
       : { label: 'Expiré', cls: 'bg-red-100 text-red-700' };
 
   return (
-    <div className="min-h-screen bg-muted/30 pt-14 md:pt-14">
+    <div className="min-h-screen bg-background pt-14 md:pt-14">
       <div className="flex">
         {/* Sidebar — desktop */}
-        <aside className="hidden md:flex flex-col w-[220px] shrink-0 border-r border-border bg-card min-h-[calc(100vh-3.5rem)] sticky top-14 p-4 gap-4">
+        <aside className="hidden md:flex flex-col w-[232px] shrink-0 border-r border-border bg-card min-h-[calc(100vh-3.5rem)] sticky top-14 p-4 gap-4">
           {/* Identity */}
           {selected?.restaurant && (
             <div className="space-y-3">
@@ -235,7 +235,7 @@ const RestaurantDashboard = () => {
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
-                    active ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:bg-secondary'
+                    active ? 'border-l-2 border-primary bg-primary/5 text-primary font-semibold' : 'border-l-2 border-transparent text-muted-foreground hover:bg-secondary'
                   }`}
                 >
                   <Icon size={16} />
@@ -252,10 +252,10 @@ const RestaurantDashboard = () => {
         {/* Main */}
         <main className="flex-1 min-w-0 pb-24 md:pb-6">
           {/* Top bar */}
-          <div className="px-4 md:px-8 py-5 flex items-center justify-between gap-3 border-b border-border/60 bg-card/40 backdrop-blur-sm">
+          <div className="px-4 md:px-8 py-5 flex items-center justify-between gap-3 border-b border-border bg-card">
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Bonjour, {greetingName} 👋</p>
-              <h1 className="text-xl md:text-2xl font-bold truncate">{currentNav.title}</h1>
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Radio size={12} className="text-primary" /> Opérations en direct</p>
+              <h1 className="text-xl md:text-2xl font-bold truncate">{activeTab === 'overview' ? selected?.restaurant?.name ?? currentNav.title : currentNav.title}</h1>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -281,7 +281,7 @@ const RestaurantDashboard = () => {
           {renderStatusBanner()}
 
           {/* Content */}
-          <div className="p-4 md:p-8">
+          <div className="mx-auto w-full max-w-7xl p-4 md:p-8">
             {selected?.restaurant && (
               <OwnerDashboardContent
                 restaurant={selected.restaurant}
