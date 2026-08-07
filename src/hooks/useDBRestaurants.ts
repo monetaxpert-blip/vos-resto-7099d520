@@ -116,11 +116,10 @@ const attachHeroPhotos = async (restaurants: DBRestaurant[]): Promise<DBRestaura
 };
 
 const fetchRestaurants = async (adminMode: boolean): Promise<DBRestaurant[]> => {
-  if (!adminMode) {
-    // Fire-and-forget: expire any due trials so the public listing never shows a restaurant
-    // whose trial is actually over, even if the owner never comes back to their dashboard.
-    await supabase.rpc('check_and_expire_trials' as any).then(() => {}, () => {});
-  }
+  // Trial expiry runs server-side via a scheduled job (pg_cron, every 15 min).
+  // The client no longer calls check_and_expire_trials() — it is not exposed to
+  // anon/authenticated on purpose (perf/DoS surface), and the silent failure of
+  // that call used to leave expired trials visible on the public listing.
   let query = supabase.from('restaurants').select('*');
   if (!adminMode) query = query.eq('is_active', true);
   const { data, error } = await query

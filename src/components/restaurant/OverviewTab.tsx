@@ -38,18 +38,35 @@ export default function OverviewTab({ restaurant, onNavigate }: { restaurant: DB
   const { reservations, updateStatus } = useOwnerReservations(restaurant.id);
   const { items: menuItems } = useRestaurantMenu(restaurant.id);
 
-  const { data: dailyViews = [] } = useQuery({
+  const { data: activity } = useQuery({
     queryKey: ['overview-daily-events', restaurant.id], enabled: !!restaurant.id,
     queryFn: async () => {
-      const start = new Date(); start.setDate(start.getDate() - 6); start.setHours(0, 0, 0, 0);
+      const start = new Date(); start.setDate(start.getDate() - 13); start.setHours(0, 0, 0, 0);
       const { data, error } = await supabase.from('analytics_events').select('created_at').eq('restaurant_id', restaurant.id).gte('created_at', start.toISOString());
-      if (error) return [];
-      const buckets = new Map<string, number>();
-      for (let i = 6; i >= 0; i -= 1) { const day = new Date(); day.setDate(day.getDate() - i); buckets.set(day.toISOString().slice(0, 10), 0); }
-      for (const row of data ?? []) { const key = new Date(row.created_at).toISOString().slice(0, 10); if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1); }
-      return Array.from(buckets.entries()).map(([date, views]) => ({ label: DAY_LABELS[(new Date(date).getDay() + 6) % 7], views }));
+      if (error) return { days: [] as Array<{ label: string; views: number; previous: number }>, total: 0, previousTotal: 0 };
+      const counts = new Map<string, number>();
+      for (let i = 13; i >= 0; i -= 1) { const day = new Date(); day.setDate(day.getDate() - i); counts.set(day.toISOString().slice(0, 10), 0); }
+      for (const row of data ?? []) { const key = new Date(row.created_at).toISOString().slice(0, 10); if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1); }
+      const keys = Array.from(counts.keys());
+      const previousKeys = keys.slice(0, 7);
+      const currentKeys = keys.slice(7);
+      const days = currentKeys.map((key, index) => ({
+        label: DAY_LABELS[(new Date(key).getDay() + 6) % 7],
+        views: counts.get(key) ?? 0,
+        previous: counts.get(previousKeys[index]) ?? 0,
+      }));
+      return {
+        days,
+        total: days.reduce((sum, d) => sum + d.views, 0),
+        previousTotal: days.reduce((sum, d) => sum + d.previous, 0),
+      };
     },
   });
+  const dailyViews = activity?.days ?? [];
+  const weekTotal = activity?.total ?? 0;
+  const previousWeekTotal = activity?.previousTotal ?? 0;
+  const weekDelta = previousWeekTotal === 0 ? (weekTotal > 0 ? 100 : 0) : Math.round(((weekTotal - previousWeekTotal) / previousWeekTotal) * 100);
+
 
   const now = new Date();
   const pendingOrders = orders.filter((order) => order.status === 'pending');
@@ -105,10 +122,18 @@ export default function OverviewTab({ restaurant, onNavigate }: { restaurant: DB
         <div className="space-y-7">
           <section className="border border-border bg-card" aria-labelledby="performance-title">
             <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-4 py-4 sm:px-6">
-              <div><p className="text-xs font-bold uppercase text-muted-foreground">Performance</p><h2 id="performance-title" className="mt-1 text-lg font-bold">Activité sur 7 jours</h2></div>
+              <div>
+                <p className="text-xs font-bold uppercase text-muted-foreground">Performance</p>
+                <h2 id="performance-title" className="mt-1 text-lg font-bold">Activité sur 7 jours</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {weekTotal} interaction{weekTotal > 1 ? 's' : ''} ·{' '}
+                  <span className={weekDelta >= 0 ? 'font-semibold text-primary' : 'font-semibold text-destructive'}>{weekDelta >= 0 ? '▲' : '▼'} {Math.abs(weekDelta)}%</span>{' '}
+                  vs semaine précédente ({previousWeekTotal})
+                </p>
+              </div>
               <div className="flex gap-5 text-right"><div><p className="text-lg font-bold">{stats?.views ?? 0}</p><p className="text-[10px] uppercase text-muted-foreground">vues</p></div><div><p className="text-lg font-bold text-primary">{(restaurant.rating ?? 0).toFixed(1)}</p><p className="text-[10px] uppercase text-muted-foreground">note</p></div></div>
             </div>
-            <div className="h-56 px-2 pb-3 pt-5 sm:px-5"><ResponsiveContainer width="100%" height="100%"><BarChart data={dailyViews} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}><CartesianGrid stroke="hsl(var(--border))" vertical={false} /><XAxis dataKey="label" axisLine={false} tickLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" /><Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 4, fontSize: 12 }} /><Bar dataKey="views" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} maxBarSize={38} /></BarChart></ResponsiveContainer></div>
+            <div className="h-56 px-2 pb-3 pt-5 sm:px-5"><ResponsiveContainer width="100%" height="100%"><BarChart data={dailyViews} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}><CartesianGrid stroke="hsl(var(--border))" vertical={false} /><XAxis dataKey="label" axisLine={false} tickLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" /><Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 4, fontSize: 12 }} /><Bar dataKey="previous" name="Semaine précédente" fill="hsl(var(--muted))" radius={[3, 3, 0, 0]} maxBarSize={26} /><Bar dataKey="views" name="Cette semaine" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} maxBarSize={26} /></BarChart></ResponsiveContainer></div>
           </section>
 
           <section className="border border-border bg-card" aria-labelledby="orders-title">
