@@ -38,18 +38,35 @@ export default function OverviewTab({ restaurant, onNavigate }: { restaurant: DB
   const { reservations, updateStatus } = useOwnerReservations(restaurant.id);
   const { items: menuItems } = useRestaurantMenu(restaurant.id);
 
-  const { data: dailyViews = [] } = useQuery({
+  const { data: activity } = useQuery({
     queryKey: ['overview-daily-events', restaurant.id], enabled: !!restaurant.id,
     queryFn: async () => {
-      const start = new Date(); start.setDate(start.getDate() - 6); start.setHours(0, 0, 0, 0);
+      const start = new Date(); start.setDate(start.getDate() - 13); start.setHours(0, 0, 0, 0);
       const { data, error } = await supabase.from('analytics_events').select('created_at').eq('restaurant_id', restaurant.id).gte('created_at', start.toISOString());
-      if (error) return [];
-      const buckets = new Map<string, number>();
-      for (let i = 6; i >= 0; i -= 1) { const day = new Date(); day.setDate(day.getDate() - i); buckets.set(day.toISOString().slice(0, 10), 0); }
-      for (const row of data ?? []) { const key = new Date(row.created_at).toISOString().slice(0, 10); if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1); }
-      return Array.from(buckets.entries()).map(([date, views]) => ({ label: DAY_LABELS[(new Date(date).getDay() + 6) % 7], views }));
+      if (error) return { days: [] as Array<{ label: string; views: number; previous: number }>, total: 0, previousTotal: 0 };
+      const counts = new Map<string, number>();
+      for (let i = 13; i >= 0; i -= 1) { const day = new Date(); day.setDate(day.getDate() - i); counts.set(day.toISOString().slice(0, 10), 0); }
+      for (const row of data ?? []) { const key = new Date(row.created_at).toISOString().slice(0, 10); if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1); }
+      const keys = Array.from(counts.keys());
+      const previousKeys = keys.slice(0, 7);
+      const currentKeys = keys.slice(7);
+      const days = currentKeys.map((key, index) => ({
+        label: DAY_LABELS[(new Date(key).getDay() + 6) % 7],
+        views: counts.get(key) ?? 0,
+        previous: counts.get(previousKeys[index]) ?? 0,
+      }));
+      return {
+        days,
+        total: days.reduce((sum, d) => sum + d.views, 0),
+        previousTotal: days.reduce((sum, d) => sum + d.previous, 0),
+      };
     },
   });
+  const dailyViews = activity?.days ?? [];
+  const weekTotal = activity?.total ?? 0;
+  const previousWeekTotal = activity?.previousTotal ?? 0;
+  const weekDelta = previousWeekTotal === 0 ? (weekTotal > 0 ? 100 : 0) : Math.round(((weekTotal - previousWeekTotal) / previousWeekTotal) * 100);
+
 
   const now = new Date();
   const pendingOrders = orders.filter((order) => order.status === 'pending');
