@@ -122,10 +122,18 @@ export default function OverviewTab({ restaurant, onNavigate }: { restaurant: DB
         <div className="space-y-7">
           <section className="border border-border bg-card" aria-labelledby="performance-title">
             <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-4 py-4 sm:px-6">
-              <div><p className="text-xs font-bold uppercase text-muted-foreground">Performance</p><h2 id="performance-title" className="mt-1 text-lg font-bold">Activité sur 7 jours</h2></div>
+              <div>
+                <p className="text-xs font-bold uppercase text-muted-foreground">Performance</p>
+                <h2 id="performance-title" className="mt-1 text-lg font-bold">Activité sur 7 jours</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {weekTotal} interaction{weekTotal > 1 ? 's' : ''} ·{' '}
+                  <span className={weekDelta >= 0 ? 'font-semibold text-primary' : 'font-semibold text-destructive'}>{weekDelta >= 0 ? '▲' : '▼'} {Math.abs(weekDelta)}%</span>{' '}
+                  vs semaine précédente ({previousWeekTotal})
+                </p>
+              </div>
               <div className="flex gap-5 text-right"><div><p className="text-lg font-bold">{stats?.views ?? 0}</p><p className="text-[10px] uppercase text-muted-foreground">vues</p></div><div><p className="text-lg font-bold text-primary">{(restaurant.rating ?? 0).toFixed(1)}</p><p className="text-[10px] uppercase text-muted-foreground">note</p></div></div>
             </div>
-            <div className="h-56 px-2 pb-3 pt-5 sm:px-5"><ResponsiveContainer width="100%" height="100%"><BarChart data={dailyViews} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}><CartesianGrid stroke="hsl(var(--border))" vertical={false} /><XAxis dataKey="label" axisLine={false} tickLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" /><Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 4, fontSize: 12 }} /><Bar dataKey="views" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} maxBarSize={38} /></BarChart></ResponsiveContainer></div>
+            <div className="h-56 px-2 pb-3 pt-5 sm:px-5"><ResponsiveContainer width="100%" height="100%"><BarChart data={dailyViews} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}><CartesianGrid stroke="hsl(var(--border))" vertical={false} /><XAxis dataKey="label" axisLine={false} tickLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" /><Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 4, fontSize: 12 }} /><Bar dataKey="previous" name="Semaine précédente" fill="hsl(var(--muted))" radius={[3, 3, 0, 0]} maxBarSize={26} /><Bar dataKey="views" name="Cette semaine" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} maxBarSize={26} /></BarChart></ResponsiveContainer></div>
           </section>
 
           <section className="border border-border bg-card" aria-labelledby="orders-title">
