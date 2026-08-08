@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Restaurant } from '@/data/types';
 
@@ -15,23 +15,23 @@ export interface DBRestaurant extends Restaurant {
 interface RawRow {
   id: string;
   name: string;
-  address: string | null;
+  address?: string | null;
   quartier: string | null;
   city: string;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  lat: number | null;
-  lng: number | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  lat?: number | null;
+  lng?: number | null;
   latitude: number | null;
   longitude: number | null;
   rating: number | null;
   rating_count: number;
   categories: string[];
   price_level: string | null;
-  hours: string | null;
-  place_id: string | null;
-  social_media: { facebook?: string | null; instagram?: string | null; twitter?: string | null; youtube?: string | null } | null;
+  hours?: string | null;
+  place_id?: string | null;
+  social_media?: { facebook?: string | null; instagram?: string | null; twitter?: string | null; youtube?: string | null } | null;
   is_active: boolean;
   is_featured: boolean;
   is_pinned: boolean;
@@ -40,35 +40,51 @@ interface RawRow {
   admin_plan: 'Standard' | 'Premium' | 'Elite';
   profile_image: string | null;
   banner_image: string | null;
+  hero_photo_url?: string | null;
   description: string | null;
   whatsapp_number: string | null;
   whatsapp_link: string | null;
   average_price: number | null;
   price_range: string | null;
   cuisine_type: string | null;
-  address_detail: string | null;
+  address_detail?: string | null;
   opening_hours: Record<string, unknown> | null;
 }
+
+/**
+ * Columns needed to render a restaurant card / search filter / map pin.
+ * Heavy or detail-only columns (social_media, hours, place_id, timestamps…)
+ * are intentionally excluded from list queries.
+ */
+const LIST_COLUMNS = [
+  'id', 'name', 'address', 'quartier', 'city', 'phone',
+  'latitude', 'longitude', 'lat', 'lng',
+  'rating', 'rating_count', 'categories', 'price_level',
+  'is_active', 'is_featured', 'is_pinned', 'display_order', 'badges', 'admin_plan',
+  'profile_image', 'banner_image', 'hero_photo_url', 'description',
+  'whatsapp_number', 'whatsapp_link', 'average_price', 'price_range', 'cuisine_type',
+  'opening_hours',
+].join(', ');
 
 const mapRow = (r: RawRow): DBRestaurant => ({
   id: r.id,
   name: r.name,
-  address: r.address,
+  address: r.address ?? null,
   quartier: r.quartier,
   city: r.city,
-  phone: r.phone,
-  email: r.email,
-  website: r.website,
-  lat: r.latitude ?? r.lat,
-  lng: r.longitude ?? r.lng,
-  latitude: r.latitude ?? r.lat,
-  longitude: r.longitude ?? r.lng,
+  phone: r.phone ?? null,
+  email: r.email ?? null,
+  website: r.website ?? null,
+  lat: r.latitude ?? r.lat ?? null,
+  lng: r.longitude ?? r.lng ?? null,
+  latitude: r.latitude ?? r.lat ?? null,
+  longitude: r.longitude ?? r.lng ?? null,
   rating: r.rating,
   ratingCount: r.rating_count,
   categories: r.categories ?? [],
   priceLevel: r.price_level,
-  hours: r.hours,
-  placeId: r.place_id,
+  hours: r.hours ?? null,
+  placeId: r.place_id ?? null,
   socialMedia: r.social_media
     ? {
         facebook: r.social_media.facebook ?? null,
@@ -79,14 +95,14 @@ const mapRow = (r: RawRow): DBRestaurant => ({
     : null,
   profileImage: r.profile_image,
   bannerImage: r.banner_image,
-  heroPhotoUrl: null,
+  heroPhotoUrl: r.hero_photo_url ?? null,
   description: r.description,
   whatsappNumber: r.whatsapp_number,
   whatsappLink: r.whatsapp_link,
   averagePrice: r.average_price,
   priceRange: r.price_range,
   cuisineType: r.cuisine_type,
-  addressDetail: r.address_detail,
+  addressDetail: r.address_detail ?? null,
   openingHours: (r.opening_hours as unknown as import('@/data/types').OpeningHours) ?? undefined,
   isActive: r.is_active,
   isFeatured: r.is_featured,
@@ -96,40 +112,32 @@ const mapRow = (r: RawRow): DBRestaurant => ({
   adminPlan: r.admin_plan,
 });
 
-const attachHeroPhotos = async (restaurants: DBRestaurant[]): Promise<DBRestaurant[]> => {
-  const ids = restaurants.map((r) => r.id);
-  if (ids.length === 0) return restaurants;
-  const { data, error } = await supabase
-    .from('restaurant_photos')
-    .select('restaurant_id, url, storage_path, is_hero, display_order')
-    .in('restaurant_id', ids)
-    .order('is_hero', { ascending: false })
-    .order('display_order', { ascending: true });
-  if (error) return restaurants;
-  const map = new Map<string, string>();
-  for (const p of (data ?? []) as Array<{ restaurant_id: string; url: string | null; storage_path: string }>) {
-    if (map.has(p.restaurant_id)) continue;
-    const url = p.url || supabase.storage.from('restaurant-photos').getPublicUrl(p.storage_path).data.publicUrl;
-    if (url) map.set(p.restaurant_id, url);
-  }
-  return restaurants.map((r) => ({ ...r, heroPhotoUrl: map.get(r.id) ?? null }));
-};
-
-const fetchRestaurants = async (adminMode: boolean): Promise<DBRestaurant[]> => {
-  // Trial expiry runs server-side via a scheduled job (pg_cron, every 15 min).
-  // The client no longer calls check_and_expire_trials() — it is not exposed to
-  // anon/authenticated on purpose (perf/DoS surface), and the silent failure of
-  // that call used to leave expired trials visible on the public listing.
-  let query = supabase.from('restaurants').select('*');
-  if (!adminMode) query = query.eq('is_active', true);
-  const { data, error } = await query
+/** Same ordering as before — now backed by idx_restaurants_public_sort. */
+const applySort = <T>(q: T): T =>
+  (q as never as {
+    order: (c: string, o: { ascending: boolean }) => T;
+  })
     .order('is_pinned', { ascending: false })
     .order('is_featured', { ascending: false })
     .order('display_order', { ascending: false })
-    .order('rating_count', { ascending: false });
+    .order('rating_count', { ascending: false })
+    .order('id', { ascending: true } as never) as T;
+
+const fetchRestaurantsPage = async (
+  adminMode: boolean,
+  pageSize: number,
+  pageParam: number
+): Promise<{ rows: DBRestaurant[]; total: number | null; nextOffset: number | null }> => {
+  // Trial expiry runs server-side via a scheduled job (pg_cron, every 15 min).
+  let query = supabase
+    .from('restaurants')
+    .select(adminMode ? '*' : LIST_COLUMNS, { count: 'exact' });
+  if (!adminMode) query = query.eq('is_active', true) as typeof query;
+  const { data, error, count } = await applySort(query).range(pageParam, pageParam + pageSize - 1);
   if (error) throw error;
-  const restaurants = (data ?? []).map((row) => mapRow(row as RawRow));
-  return attachHeroPhotos(restaurants);
+  const rows = ((data ?? []) as unknown as RawRow[]).map(mapRow);
+  const nextOffset = rows.length < pageSize ? null : pageParam + pageSize;
+  return { rows, total: count ?? null, nextOffset };
 };
 
 const fetchRestaurantById = async (id: string, adminMode: boolean): Promise<DBRestaurant | null> => {
@@ -138,34 +146,46 @@ const fetchRestaurantById = async (id: string, adminMode: boolean): Promise<DBRe
   const { data, error } = await q.maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const [withHero] = await attachHeroPhotos([mapRow(data as RawRow)]);
-  return withHero;
+  return mapRow(data as unknown as RawRow);
 };
 
 export const restaurantsKeys = {
   all: ['restaurants'] as const,
-  list: (adminMode: boolean) => ['restaurants', 'list', { adminMode }] as const,
+  list: (adminMode: boolean, pageSize: number) => ['restaurants', 'list', { adminMode, pageSize }] as const,
   detail: (id: string | undefined, adminMode: boolean) => ['restaurants', 'detail', id, { adminMode }] as const,
 };
 
-export function useDBRestaurants(opts: { adminMode?: boolean } = {}) {
+export function useDBRestaurants(opts: { adminMode?: boolean; pageSize?: number } = {}) {
   const adminMode = !!opts.adminMode;
+  const pageSize = opts.pageSize ?? 20;
   const qc = useQueryClient();
-  const query = useQuery({
-    queryKey: restaurantsKeys.list(adminMode),
-    queryFn: () => fetchRestaurants(adminMode),
+
+  const query = useInfiniteQuery({
+    queryKey: restaurantsKeys.list(adminMode, pageSize),
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => fetchRestaurantsPage(adminMode, pageSize, pageParam as number),
+    getNextPageParam: (lastPage) => lastPage.nextOffset,
   });
 
   const refresh = useCallback(async () => {
-    await qc.invalidateQueries({ queryKey: restaurantsKeys.list(adminMode) });
-  }, [qc, adminMode]);
+    await qc.invalidateQueries({ queryKey: restaurantsKeys.all });
+  }, [qc]);
 
-  const list = useMemo(() => query.data ?? [], [query.data]);
+  const list = useMemo(
+    () => (query.data?.pages ?? []).flatMap((p) => p.rows),
+    [query.data]
+  );
+  const total = query.data?.pages?.[0]?.total ?? null;
+
   return {
     list,
+    total,
     loading: query.isLoading,
     error: query.error ? (query.error as Error).message : null,
     refresh,
+    fetchNextPage: query.fetchNextPage,
+    hasNextPage: !!query.hasNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
   };
 }
 
