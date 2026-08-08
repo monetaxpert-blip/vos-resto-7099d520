@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useVisibleInterval } from '@/hooks/useVisiblePolling';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Users, TrendingUp, Activity, Coins, UserPlus, AlertTriangle,
@@ -117,7 +118,8 @@ const useAdminMetrics = () => {
         mrr,
       };
     },
-    refetchInterval: 60000,
+    refetchInterval,
+    refetchIntervalInBackground: false,
   });
 };
 

@@ -15,7 +15,12 @@ import { useSortByPlan } from '@/hooks/useOwnership';
 const SearchPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { list } = useDBRestaurants();
+  const { list, hasNextPage, isFetchingNextPage, fetchNextPage } = useDBRestaurants({ pageSize: 200 });
+
+  // Filtering is client-side: load every bounded page before filtering.
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
   const ranked = useSortByPlan(list);
   const [query, setQuery] = useState('');
   const [selectedQuartier, setSelectedQuartier] = useState<string | null>(searchParams.get('quartier'));
