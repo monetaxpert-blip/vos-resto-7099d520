@@ -112,17 +112,6 @@ const mapRow = (r: RawRow): DBRestaurant => ({
   adminPlan: r.admin_plan,
 });
 
-/** Same ordering as before — now backed by idx_restaurants_public_sort. */
-const applySort = <T>(q: T): T =>
-  (q as never as {
-    order: (c: string, o: { ascending: boolean }) => T;
-  })
-    .order('is_pinned', { ascending: false })
-    .order('is_featured', { ascending: false })
-    .order('display_order', { ascending: false })
-    .order('rating_count', { ascending: false })
-    .order('id', { ascending: true } as never) as T;
-
 const fetchRestaurantsPage = async (
   adminMode: boolean,
   pageSize: number,
@@ -133,7 +122,16 @@ const fetchRestaurantsPage = async (
     .from('restaurants')
     .select(adminMode ? '*' : LIST_COLUMNS, { count: 'exact' });
   if (!adminMode) query = query.eq('is_active', true) as typeof query;
-  const { data, error, count } = await applySort(query).range(pageParam, pageParam + pageSize - 1);
+  // Same ordering as before — now backed by idx_restaurants_public_sort.
+  // `id` is only a tiebreaker so pagination stays stable.
+  const { data, error, count } = await query
+    .order('is_pinned', { ascending: false })
+    .order('is_featured', { ascending: false })
+    .order('display_order', { ascending: false })
+    .order('rating_count', { ascending: false })
+    .order('id', { ascending: true })
+    .range(pageParam, pageParam + pageSize - 1);
+
   if (error) throw error;
   const rows = ((data ?? []) as unknown as RawRow[]).map(mapRow);
   const nextOffset = rows.length < pageSize ? null : pageParam + pageSize;
