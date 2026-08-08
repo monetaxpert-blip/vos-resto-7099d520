@@ -563,6 +563,7 @@ export type Database = {
           description: string | null
           display_order: number
           email: string | null
+          hero_photo_url: string | null
           hours: string | null
           id: string
           is_active: boolean
@@ -603,6 +604,7 @@ export type Database = {
           description?: string | null
           display_order?: number
           email?: string | null
+          hero_photo_url?: string | null
           hours?: string | null
           id: string
           is_active?: boolean
@@ -643,6 +645,7 @@ export type Database = {
           description?: string | null
           display_order?: number
           email?: string | null
+          hero_photo_url?: string | null
           hours?: string | null
           id?: string
           is_active?: boolean
