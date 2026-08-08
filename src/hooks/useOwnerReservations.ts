@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useVisibleInterval } from '@/hooks/useVisiblePolling';
 import { toast } from 'sonner';
 
 export interface OwnerReservation {
