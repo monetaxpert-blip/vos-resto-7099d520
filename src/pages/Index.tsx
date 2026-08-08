@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, MapPin, Plus, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -90,7 +90,8 @@ const SectionTitle = ({ children, kicker }: { children: React.ReactNode; kicker?
 
 const Index = () => {
   const navigate = useNavigate();
-  const { list, loading } = useDBRestaurants();
+  const { list, loading, hasNextPage, isFetchingNextPage, fetchNextPage } = useDBRestaurants({ pageSize: 20 });
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const allSorted = useMemo(() => [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0)), [list]);
   const quartiers = useMemo(() => {
     const counts = new Map<string, number>();
@@ -105,6 +106,20 @@ const Index = () => {
   }, [list]);
 
   const cardFillers = loading ? 3 : allSorted.length === 0 ? 3 : 0;
+
+  // Infinite scroll: load the next page of 20 when the sentinel enters view.
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !hasNextPage) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) void fetchNextPage();
+      },
+      { rootMargin: '400px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -216,6 +231,15 @@ const Index = () => {
             </StaggerList>
           )}
 
+
+          <div ref={sentinelRef} aria-hidden className="h-px w-full" />
+          {isFetchingNextPage && (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <RestaurantCardSkeleton key={`next-${index}`} />
+              ))}
+            </div>
+          )}
 
           {cardFillers > 0 && (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
