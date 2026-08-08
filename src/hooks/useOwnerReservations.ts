@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useVisibleInterval } from '@/hooks/useVisiblePolling';
 import { toast } from 'sonner';
 
 export interface OwnerReservation {
@@ -20,10 +20,14 @@ export interface OwnerReservation {
 
 export function useOwnerReservations(restaurantId: string | null | undefined) {
   const qc = useQueryClient();
+  const refetchInterval = useVisibleInterval(60_000);
 
   const query = useQuery({
     queryKey: ['owner-reservations', restaurantId],
     enabled: !!restaurantId,
+    // Polling only while the tab is visible (realtime channels are flaky here)
+    refetchInterval,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('reservations')
@@ -50,14 +54,6 @@ export function useOwnerReservations(restaurantId: string | null | undefined) {
     },
   });
 
-  // Polling every 30s - avoids Supabase realtime channel errors
-  useEffect(() => {
-    if (!restaurantId) return;
-    const interval = setInterval(() => {
-      qc.invalidateQueries({ queryKey: ['owner-reservations', restaurantId] });
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [restaurantId, qc]);
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'confirmed' | 'cancelled' }) => {

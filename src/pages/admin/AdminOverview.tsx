@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useVisibleInterval } from '@/hooks/useVisiblePolling';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Users, TrendingUp, Activity, Coins, UserPlus, AlertTriangle,
@@ -56,6 +57,7 @@ const downloadCSV = (rows: Record<string, unknown>[], filename: string) => {
 
 // ---------------- Data queries ----------------
 const useAdminMetrics = () => {
+  const refetchInterval = useVisibleInterval(120_000);
   return useQuery({
     queryKey: ['admin', 'metrics'],
     queryFn: async () => {
@@ -117,7 +119,8 @@ const useAdminMetrics = () => {
         mrr,
       };
     },
-    refetchInterval: 60000,
+    refetchInterval,
+    refetchIntervalInBackground: false,
   });
 };
 

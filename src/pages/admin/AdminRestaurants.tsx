@@ -10,7 +10,7 @@ const ALL_BADGES = ['Recommandé', 'Populaire', 'Top'];
 const PLANS = ['Standard', 'Premium', 'Elite'] as const;
 
 const AdminRestaurants = () => {
-  const { list, loading, refresh } = useDBRestaurants({ adminMode: true });
+  const { list, total, loading, refresh, hasNextPage, isFetchingNextPage, fetchNextPage } = useDBRestaurants({ adminMode: true, pageSize: 25 });
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState<DBRestaurant | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -57,6 +57,10 @@ const AdminRestaurants = () => {
         </div>
         <Button size="sm" onClick={() => setEditing({} as DBRestaurant)}>+ Ajouter</Button>
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        {list.length} affiché{list.length > 1 ? 's' : ''}{total !== null ? ` sur ${total}` : ''}
+      </p>
 
       {loading && <p className="text-sm text-muted-foreground">Chargement...</p>}
 
@@ -143,6 +147,17 @@ const AdminRestaurants = () => {
           </div>
         ))}
       </div>
+
+      {hasNextPage && (
+        <Button
+          variant="secondary"
+          className="w-full"
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {isFetchingNextPage && <Loader2 size={14} className="animate-spin" />} Charger 25 de plus
+        </Button>
+      )}
 
       {editing && <EditModal r={editing} onClose={() => { setEditing(null); refresh(); }} />}
     </div>

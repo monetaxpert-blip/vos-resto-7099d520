@@ -44,11 +44,9 @@ export function useNotifications() {
         () => qc.invalidateQueries({ queryKey: ['notifications', user.id] })
       )
       .subscribe();
-    const interval = window.setInterval(() => {
-      qc.invalidateQueries({ queryKey: ['notifications', user.id] });
-    }, 30000);
+    // No polling here on purpose: the realtime channel above already covers
+    // every change on this exact dataset.
     return () => {
-      window.clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [user, qc]);

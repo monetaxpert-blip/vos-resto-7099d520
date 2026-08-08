@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, X } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -10,7 +10,12 @@ import CategoryTag from '@/components/restaurant/CategoryTag';
 const MapView = () => {
   const navigate = useNavigate();
   const [category, setCategory] = useState<string | null>(null);
-  const { list, loading } = useDBRestaurants();
+  const { list, loading, hasNextPage, isFetchingNextPage, fetchNextPage } = useDBRestaurants({ pageSize: 200 });
+
+  // The map needs every pin: keep pulling bounded pages until exhausted.
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const filtered = useMemo(() => {
     if (!category) return list;
