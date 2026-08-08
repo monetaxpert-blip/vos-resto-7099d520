@@ -13,11 +13,13 @@ export interface RestaurantStats {
 }
 
 export function useRestaurantStats(restaurantId?: string) {
-  const qc = useQueryClient();
+  const refetchInterval = useVisibleInterval(120_000);
 
-  const query = useQuery({
+  return useQuery({
     queryKey: ['restaurant-stats', restaurantId],
     enabled: !!restaurantId,
+    refetchInterval,
+    refetchIntervalInBackground: false,
     queryFn: async (): Promise<RestaurantStats> => {
       const { data, error } = await supabase
         .from('analytics_events')
@@ -43,14 +45,5 @@ export function useRestaurantStats(restaurantId?: string) {
       return { views, clicks, whatsapp, directions, searches, conversionRate: views > 0 ? (actions / views) * 100 : 0, trafficByHour };
     },
   });
-
-  useEffect(() => {
-    if (!restaurantId) return;
-    const interval = setInterval(() => {
-      qc.invalidateQueries({ queryKey: ['restaurant-stats', restaurantId] });
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [restaurantId, qc]);
-
-  return query;
 }
+
