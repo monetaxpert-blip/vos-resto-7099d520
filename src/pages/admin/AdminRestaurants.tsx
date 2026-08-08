@@ -148,6 +148,17 @@ const AdminRestaurants = () => {
         ))}
       </div>
 
+      {hasNextPage && (
+        <Button
+          variant="secondary"
+          className="w-full"
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {isFetchingNextPage && <Loader2 size={14} className="animate-spin" />} Charger 25 de plus
+        </Button>
+      )}
+
       {editing && <EditModal r={editing} onClose={() => { setEditing(null); refresh(); }} />}
     </div>
   );
