@@ -57,6 +57,7 @@ const downloadCSV = (rows: Record<string, unknown>[], filename: string) => {
 
 // ---------------- Data queries ----------------
 const useAdminMetrics = () => {
+  const refetchInterval = useVisibleInterval(120_000);
   return useQuery({
     queryKey: ['admin', 'metrics'],
     queryFn: async () => {
