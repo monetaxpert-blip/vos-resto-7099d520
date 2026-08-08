@@ -65,11 +65,13 @@ export function useMyOrders(userId: string | undefined) {
 }
 
 export function useOwnerOrders(restaurantId: string | undefined) {
+  const refetchInterval = useVisibleInterval(60_000);
   return useQuery({
     queryKey: ordersKeys.owner(restaurantId),
     queryFn: () => fetchOrdersWithItems({ restaurant_id: restaurantId! }),
     enabled: !!restaurantId,
-    refetchInterval: 30_000,
+    refetchInterval,
+    refetchIntervalInBackground: false,
   });
 }
 
